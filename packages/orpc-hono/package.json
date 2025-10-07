@@ -1,0 +1,54 @@
+{
+  "name": "@horn/orpc-hono",
+  "version": "1.0.0",
+  "description": "oRPC integration for Hono framework with OOP configuration",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "pnpm clean && pnpm build"
+  },
+  "keywords": [
+    "orpc",
+    "hono",
+    "typescript",
+    "api",
+    "rpc",
+    "decorators"
+  ],
+  "peerDependencies": {
+    "hono": "^4.0.0",
+    "@orpc/contract": "^1.9.0",
+    "@orpc/openapi": "^1.9.0",
+    "@orpc/server": "^1.9.0",
+    "zod": "^3.0.0"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@orpc/contract": "^1.9.3",
+    "@orpc/openapi": "^1.9.3",
+    "@orpc/server": "^1.9.3",
+    "hono": "^4.9.10",
+    "typescript": "^5.9.2",
+    "zod": "^3.25.76"
+  },
+  "author": "Zee Sandev",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

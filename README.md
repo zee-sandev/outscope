@@ -1,135 +1,193 @@
-# Turborepo starter
+# @horn Monorepo
 
-This Turborepo starter is maintained by the Turborepo core team.
+Modern, type-safe development tools and frameworks.
 
-## Using this example
+## 📦 Packages
 
-Run the following command:
+### @horn/orpc-hono
 
-```sh
-npx create-turbo@latest
+oRPC integration for Hono framework with OOP configuration. Build type-safe APIs with contract-first development.
+
+**Features:**
+
+- ✨ Instance-based OOP pattern
+- 🎯 Full type safety end-to-end
+- 🔥 Hono framework integration
+- 📝 Contract-first development
+- 🛡️ Built-in error handling
+- 🌐 Edge runtime compatible
+
+[Documentation](./packages/orpc-hono/README.md) | [Quick Start](./QUICKSTART.md)
+
+## 🚀 Quick Start
+
+```bash
+# Install dependencies
+pnpm install
+
+# Build packages
+pnpm build
+
+# Run example app
+cd apps/example-orpc-hono
+pnpm dev
 ```
 
-## What's inside?
+Visit: `http://localhost:3000`
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+## 📁 Structure
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+@horn/
+├── packages/
+│   ├── orpc-hono/              # Main package
+│   ├── eslint-config/          # ESLint configs
+│   └── typescript-config/      # TypeScript configs
+│
+├── apps/
+│   ├── example-orpc-hono/      # Example Hono app
+│   └── docs/                   # Documentation site
+│
+├── QUICKSTART.md               # Quick start guide
+└── README.md                   # This file
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## 🎯 Example Usage
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+### 1. Define Contract
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+```typescript
+import { oc } from '@orpc/contract'
+import * as z from 'zod'
 
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+const getUserContract = oc
+  .route({ method: 'GET', path: '/users/{id}' })
+  .input(z.object({ id: z.string() }))
+  .output(z.object({ id: z.string(), name: z.string() }))
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### 2. Implement Controller
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+```typescript
+import { ORPCHono, Controller, Implement, implement } from '@horn/orpc-hono'
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+@Controller()
+class UserController {
+  @Implement(getUserContract)
+  getUser() {
+    return implement(getUserContract).handler(({ input }) => {
+      return { id: input.id, name: 'John Doe' }
+    })
+  }
+}
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+### 3. Setup Server
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+```typescript
+import { Hono } from 'hono'
+import { registerController } from '@horn/orpc-hono'
 
+const app = new Hono()
+const orpcHono = new ORPCHono({ prefix: '/api' })
+
+orpcHono.applyMiddleware(app)
+await registerController(app, new UserController(), orpcHono)
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+## 📚 Documentation
+
+- [Quick Start](./QUICKSTART.md) - Get started in 5 minutes
+- [Package Documentation](./packages/orpc-hono/README.md) - Full API docs
+- [Architecture](./packages/orpc-hono/ARCHITECTURE.md) - Design decisions
+- [Migration Guide](./packages/orpc-hono/MIGRATION.md) - Upgrade guide
+- [Example App](./apps/example-orpc-hono/README.md) - Working example
+
+## 🛠️ Development
+
+### Prerequisites
+
+- Node.js 18+ (22+ recommended)
+- pnpm 8+
+- TypeScript 5.0+
+
+### Commands
+
+```bash
+# Install dependencies
+pnpm install
+
+# Build all packages
+pnpm build
+
+# Clean build artifacts
+pnpm clean
+
+# Run example
+pnpm --filter @horn/example-orpc-hono dev
 ```
 
-## Useful Links
+## 🎨 Features
 
-Learn more about the power of Turborepo:
+### Type Safety
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+Full end-to-end type safety from contract to client:
+
+```typescript
+// Contract defines the types
+const contract = oc.route(...)
+  .input(z.object({ id: z.string() }))
+  .output(UserSchema)
+
+// Implementation is type-checked
+implement(contract).handler(({ input }) => {
+  input.id // ✅ TypeScript knows this is string
+  return user // ✅ Must match UserSchema
+})
+
+// Client is fully typed
+const user = await client.user.get({ id: '123' })
+user.name // ✅ TypeScript knows all properties
+```
+
+### Edge Runtime
+
+Works seamlessly in edge environments:
+
+- ✅ Cloudflare Workers
+- ✅ Vercel Edge Functions
+- ✅ Deno Deploy
+- ✅ Fastly Compute@Edge
+
+### Performance
+
+Lightweight and fast:
+
+- 📦 Small bundle size (~100KB)
+- ⚡ No heavy frameworks
+- 🚀 Native Hono performance
+- 🔧 Zero config needed
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our contributing guide.
+
+## 📄 License
+
+MIT License - see LICENSE for details
+
+## 🙏 Credits
+
+- Built with [Hono](https://hono.dev)
+- Inspired by [@orpc/nest](https://github.com/unnoq/orpc)
+- Powered by [oRPC](https://orpc.unnoq.com)
+
+## 📞 Support
+
+- 📖 [Documentation](./packages/orpc-hono/README.md)
+- 💬 [Discussions](https://github.com/your-repo/discussions)
+- 🐛 [Issues](https://github.com/your-repo/issues)
+
+---
+
+Made with ❤️ by the @horn team

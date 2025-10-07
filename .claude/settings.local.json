@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm build:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(pkill:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(curl:*)",
+      "Bash(pnpm turbo build:*)",
+      "Bash(timeout 10 tsx src/index.ts)",
+      "Bash(pnpm exec:*)",
+      "Bash(pnpm --filter @horn/orpc-hono build)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/zee/Documents/ZEE.SANDEV/@horn/packages/orpc-hono/src/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
