@@ -10,7 +10,10 @@
       "Bash(pnpm turbo build:*)",
       "Bash(timeout 10 tsx src/index.ts)",
       "Bash(pnpm exec:*)",
-      "Bash(pnpm --filter @horn/orpc-hono build)"
+      "Bash(pnpm --filter @horn/orpc-hono build)",
+      "Bash(tree:*)",
+      "Bash(ln:*)",
+      "Bash(pnpm install:*)"
     ],
     "deny": [],
     "ask": []

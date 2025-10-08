@@ -1,0 +1,49 @@
+{
+  "name": "@horn/cli",
+  "version": "0.1.0",
+  "description": "CLI tool for scaffolding @horn/orpc-hono projects",
+  "type": "module",
+  "bin": {
+    "horn": "./bin/horn.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bin",
+    "templates"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "inquirer": "^12.3.0",
+    "picocolors": "^1.1.1",
+    "ora": "^8.1.1",
+    "execa": "^9.5.2",
+    "tar": "^7.4.3"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.17.10",
+    "@types/tar": "^6.1.13",
+    "tsup": "^8.3.5",
+    "typescript": "^5.8.3"
+  },
+  "keywords": [
+    "cli",
+    "scaffold",
+    "orpc",
+    "hono",
+    "horn",
+    "typescript"
+  ],
+  "license": "MIT"
+}

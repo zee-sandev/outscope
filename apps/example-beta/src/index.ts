@@ -13,7 +13,7 @@ import { ORPCHono } from '@horn/orpc-hono'
 import { createContext, type ORPCContext } from 'libs/orpc/context'
 import { contract } from './contracts'
 import { loadControllers } from '@libs/controller-loader'
-import { getLogger, initLogger } from '@libs/logger'
+import { initLogger } from '@libs/logger'
 
 const PORT = 3000
 const API_PREFIX = '/api'
@@ -87,13 +87,14 @@ async function generateOpenAPIDoc() {
 
   return generator.generate(contract, {
     info: {
-      title: 'FastUtil API',
+      title: '@horn/orpc-hono Example API',
       version: '1.0.0',
+      description: 'Example API demonstrating @horn/orpc-hono with OOP decorators',
     },
     servers: [
       {
         url: API_PREFIX,
-        description: 'FastUtil API',
+        description: 'Development server',
       },
     ],
   })
