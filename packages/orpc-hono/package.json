@@ -1,6 +1,6 @@
 {
   "name": "@outscope/orpc-hono",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "oRPC integration for Hono framework with OOP configuration",
   "type": "module",
   "main": "./dist/index.js",
