@@ -6,7 +6,9 @@
     "baseUrl": "./src",
     "paths": {
       "@contracts/*": ["contracts/*"],
-      "@schemas/*": ["schemas/*"]
+      "@schemas/*": ["schemas/*"],
+      "@libs/*": ["libs/*"],
+      "@generated/*": ["generated/*"]
     },
     "strict": true,
     "verbatimModuleSyntax": true,
