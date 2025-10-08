@@ -5,6 +5,7 @@
 ### Patch Changes
 
 - Release patch version for @outscope/orpc-hono
+- Fixbug @Implementer middleware doesn't apply correctly
 
 ## 0.1.2
 
