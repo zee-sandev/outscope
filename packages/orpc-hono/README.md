@@ -1,4 +1,4 @@
-# @horn/orpc-hono
+# @outscope/orpc-hono
 
 Decorator-based OOP integration for [oRPC](https://orpc.dev) with [Hono](https://hono.dev) framework.
 
@@ -14,13 +14,13 @@ Decorator-based OOP integration for [oRPC](https://orpc.dev) with [Hono](https:/
 ## Installation
 
 ```bash
-npm install @horn/orpc-hono hono @orpc/contract @orpc/server zod reflect-metadata
+npm install @outscope/orpc-hono hono @orpc/contract @orpc/server zod reflect-metadata
 ```
 
 Or with pnpm:
 
 ```bash
-pnpm add @horn/orpc-hono hono @orpc/contract @orpc/server zod reflect-metadata
+pnpm add @outscope/orpc-hono hono @orpc/contract @orpc/server zod reflect-metadata
 ```
 
 ## Quick Start
@@ -46,7 +46,7 @@ export const contract = {
 ### 2. Create a controller
 
 ```typescript
-import { Controller, Implement, Implementer, implement } from '@horn/orpc-hono'
+import { Controller, Implement, Implementer, implement } from '@outscope/orpc-hono'
 import { contract } from './contracts'
 
 // Create an implementer with context
@@ -70,7 +70,7 @@ export class UserController {
 ```typescript
 import 'reflect-metadata'
 import { Hono } from 'hono'
-import { ORPCHono } from '@horn/orpc-hono'
+import { ORPCHono } from '@outscope/orpc-hono'
 import { UserController } from './controllers/user'
 import { contract } from './contracts'
 

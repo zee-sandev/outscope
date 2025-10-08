@@ -1,6 +1,6 @@
-# @horn/cli
+# @outscope/cli
 
-CLI tool for scaffolding and managing @horn/orpc-hono projects.
+CLI tool for scaffolding and managing @outscope/orpc-hono projects.
 
 ## Features
 
@@ -15,10 +15,10 @@ CLI tool for scaffolding and managing @horn/orpc-hono projects.
 
 ```bash
 # Install globally
-pnpm add -g @horn/cli
+pnpm add -g @outscope/cli
 
 # Or use with npx (recommended)
-npx @horn/cli create my-app
+npx @outscope/cli create my-app
 ```
 
 ## Usage
@@ -27,13 +27,15 @@ npx @horn/cli create my-app
 
 ```bash
 # Interactive mode (recommended)
-horn create
+outscope create
+# Or use the short alias
+osp create
 
 # With project name
-horn create my-app
+outscope create my-app
 
 # With template flag (for future use)
-horn create my-app --template beta
+outscope create my-app --template beta
 ```
 
 **Interactive prompts:**
@@ -49,19 +51,22 @@ Generate features, controllers, services, or repositories:
 
 ```bash
 # Interactive mode
-horn generate
+outscope generate
+# Or use the short alias
+osp generate
 
-# Or use aliases
-horn g
+# Or use the generate alias
+outscope g
+osp g
 
 # Generate a complete feature (controller + service + repository + contracts + schema)
-horn generate feature user
-horn g feature product
+outscope generate feature user
+osp g feature product
 
 # Generate individual files
-horn generate controller order
-horn generate service payment
-horn generate repository inventory
+outscope generate controller order
+osp generate service payment
+osp generate repository inventory
 ```
 
 **For individual file generation**, you'll be prompted to select which feature/module to place the file in.
@@ -69,11 +74,17 @@ horn generate repository inventory
 ### Command Reference
 
 ```bash
-horn create [project-name]          # Create new project
-horn generate [type] [name]         # Generate code
-horn g [type] [name]                # Alias for generate
-horn --help                         # Show help
-horn --version                      # Show version
+outscope create [project-name]      # Create new project
+osp create [project-name]           # Short alias for create
+
+outscope generate [type] [name]     # Generate code
+osp generate [type] [name]          # Short alias for generate
+osp g [type] [name]                 # Alias for generate
+
+outscope --help                     # Show help
+osp --help                          # Show help
+outscope --version                  # Show version
+osp --version                       # Show version
 ```
 
 ## Templates
@@ -95,7 +106,9 @@ Currently available templates:
 Generates a complete feature module:
 
 ```bash
-horn g feature user
+outscope g feature user
+# Or using short alias
+osp g feature user
 ```
 
 Creates:
@@ -115,13 +128,16 @@ Generate specific files within existing features:
 
 ```bash
 # Generate controller
-horn g controller payment
+outscope g controller payment
+osp g controller payment
 
 # Generate service
-horn g service email
+outscope g service email
+osp g service email
 
 # Generate repository
-horn g repository cache
+outscope g repository cache
+osp g repository cache
 ```
 
 ## Development

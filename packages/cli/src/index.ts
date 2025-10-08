@@ -31,7 +31,14 @@ program
 program
   .command('generate [type] [name]')
   .alias('g')
-  .description('Generate code (feature, controller, service, repository)')
+  .description(
+    'Generate code files\n' +
+      '  Available types:\n' +
+      '    - feature: Complete feature module (controller + service + repository + contracts + schema)\n' +
+      '    - controller: Controller file only\n' +
+      '    - service: Service file only\n' +
+      '    - repository: Repository file only'
+  )
   .action(async (type: string | undefined, name: string | undefined) => {
     try {
       await generate(type, name)
