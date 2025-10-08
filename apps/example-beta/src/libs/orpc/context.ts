@@ -1,13 +1,21 @@
 import type { Context as HonoContext } from "hono";
 
+export type User = {
+  id: string
+  name: string
+  email: string
+  role: string
+}
+
 export type ORPCContext = {
-  // user?: z.infer<typeof UserSchema>
+  user?: User
   honoContext: HonoContext
 }
 
-export async function createContext({ honoContext }: ORPCContext) {
-  // No auth configured
+export async function createContext({ honoContext }: { honoContext: HonoContext }) {
+  // No user in initial context - will be added by middleware if authenticated
   return {
+    user: undefined,
     honoContext: honoContext,
   };
 }

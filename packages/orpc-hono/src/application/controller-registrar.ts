@@ -60,11 +60,13 @@ export class ControllerRegistrar {
       const { contract, method } = implementation
       const boundMethod = method.bind(controller)
 
-      // Create procedure
-      const procedure = this.createProcedure(contract, boundMethod, classImplementer)
+      // Resolve contract path first
+      const contractPath = this.routeRegistrar.resolveContractPath(contract)
+
+      // Create procedure with contract path for navigation
+      const procedure = this.createProcedure(contract, boundMethod, classImplementer, contractPath)
 
       // Register routes with Hono
-      const contractPath = this.routeRegistrar.resolveContractPath(contract)
       this.routeRegistrar.register(app, contract, procedure, contractPath)
 
       // Build handlers structure
@@ -81,8 +83,8 @@ export class ControllerRegistrar {
     for (const implementation of implementations) {
       const { contract, method } = implementation
       const boundMethod = method.bind(controller)
-      const procedure = this.createProcedure(contract, boundMethod, classImplementer)
       const contractPath = this.routeRegistrar.resolveContractPath(contract)
+      const procedure = this.createProcedure(contract, boundMethod, classImplementer, contractPath)
       const structure = this.buildRouterStructure(contractPath, procedure, implementation.methodName)
       this.deepMerge(router as any, structure as any)
     }
@@ -128,17 +130,37 @@ export class ControllerRegistrar {
    * @param contract - Contract procedure
    * @param boundMethod - Bound controller method
    * @param classImplementer - Optional class-level implementer
+   * @param contractPath - Path to navigate within implementer
    * @returns Procedure with handler
    */
   private createProcedure(
     contract: unknown,
     boundMethod: Function,
-    classImplementer?: unknown
+    classImplementer?: unknown,
+    contractPath?: string[]
   ): WithORPCMetadata {
-    // Try to find existing procedure in class implementer
+    // Try to navigate to the procedure using contract path
     let procedureImplementer: unknown
 
-    if (classImplementer) {
+    if (classImplementer && contractPath && contractPath.length > 0) {
+      // Navigate through the implementer structure using contract path
+      let current: any = classImplementer
+      for (const key of contractPath) {
+        if (current && typeof current === 'object' && key in current) {
+          current = current[key]
+        } else {
+          current = null
+          break
+        }
+      }
+
+      // Use the navigated procedure if it has the handler method
+      if (current && this.hasHandlerMethod(current)) {
+        procedureImplementer = current
+      } else {
+        procedureImplementer = implement(contract as AnyContractRouter)
+      }
+    } else if (classImplementer) {
       const existing = this.contractResolver.findProcedure(classImplementer, contract)
       procedureImplementer = existing ?? implement(contract as AnyContractRouter)
     } else {
