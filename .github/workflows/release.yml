@@ -1,6 +1,9 @@
 name: Release
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       package:
@@ -66,6 +69,7 @@ jobs:
         run: pnpm --filter @outscope/orpc-hono build && pnpm --filter @outscope/cli build
 
       - name: Create changeset for selected package
+        if: github.event_name == 'workflow_dispatch'
         run: |
           PACKAGE="${{ github.event.inputs.package }}"
           VERSION_TYPE="${{ github.event.inputs.version_type }}"
