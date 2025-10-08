@@ -22,7 +22,7 @@ export async function downloadTemplateFromGitHub(
   const { owner, repo, branch = 'main', templatePath } = options
 
   // Create temp directory
-  const tempDir = await mkdtemp(join(tmpdir(), 'horn-template-'))
+  const tempDir = await mkdtemp(join(tmpdir(), 'outscope-template-'))
 
   try {
     // Download tarball from GitHub
@@ -72,7 +72,7 @@ export function getTemplateConfig(template: string): DownloadTemplateOptions {
   const templates: Record<string, DownloadTemplateOptions> = {
     beta: {
       owner: 'zee-sandev',
-      repo: 'horn',
+      repo: 'outscope',
       branch: 'main',
       templatePath: 'apps/example-beta',
     },

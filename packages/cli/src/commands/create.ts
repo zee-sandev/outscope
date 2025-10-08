@@ -25,7 +25,7 @@ import type { TemplateContext } from '../types/index.js'
  * Create a new project from template
  */
 export async function createProject(projectName?: string): Promise<void> {
-  console.log(pc.cyan(pc.bold('\n🎺 Welcome to Horn CLI!\n')))
+  console.log(pc.cyan(pc.bold('\n🎯 Welcome to Outscope CLI!\n')))
 
   // Get project options from user
   const options = await promptCreateProject(projectName)
@@ -66,7 +66,7 @@ export async function createProject(projectName?: string): Promise<void> {
   // Create template context
   const context: TemplateContext = {
     projectName: options.projectName,
-    description: `A project built with @horn/orpc-hono`,
+    description: `A project built with @outscope/orpc-hono`,
     includePrisma: options.includePrisma,
   }
 

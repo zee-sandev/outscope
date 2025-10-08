@@ -19,17 +19,17 @@ import {
  * Generate code files (feature, controller, service, repository)
  */
 export async function generate(type?: string, name?: string): Promise<void> {
-  console.log(pc.cyan(pc.bold('\n🎺 Horn Code Generator\n')))
+  console.log(pc.cyan(pc.bold('\n🎯 Outscope Code Generator\n')))
 
   // Get generation options
   const options = await promptGenerate(type, name)
 
   const cwd = process.cwd()
 
-  // Check if we're in a Horn project
+  // Check if we're in an Outscope project
   const packageJsonPath = join(cwd, 'package.json')
   if (!(await fileExists(packageJsonPath))) {
-    console.error(pc.red('\n✗ No package.json found. Are you in a Horn project?\n'))
+    console.error(pc.red('\n✗ No package.json found. Are you in an Outscope project?\n'))
     process.exit(1)
   }
 

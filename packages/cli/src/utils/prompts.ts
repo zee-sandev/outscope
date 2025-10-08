@@ -12,7 +12,7 @@ export async function promptCreateProject(
       type: 'input',
       name: 'projectName',
       message: 'Project name:',
-      default: projectName || 'my-horn-app',
+      default: projectName || 'my-outscope-app',
       when: !projectName,
       validate: (input: string) => {
         if (!input) return 'Project name is required'

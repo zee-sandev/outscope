@@ -1,6 +1,7 @@
 import { readdir, cp, mkdir, readFile, writeFile, stat } from 'fs/promises'
 import { join, dirname } from 'path'
 import type { TemplateContext } from '../types/index.js'
+import { resolveWorkspaceDependency } from './npm-registry.js'
 
 const SKIP_FILES = ['.env', 'node_modules', 'dist', '.turbo', '*.db', '*.db-journal']
 const SKIP_DIRS = ['node_modules', 'dist', '.turbo', 'src/generated']
@@ -97,6 +98,15 @@ async function transformAndWriteFile(
     pkg.description = context.description
     pkg.version = '0.1.0'
 
+    // Resolve workspace:* dependencies to published versions
+    if (pkg.dependencies) {
+      for (const [depName, depVersion] of Object.entries(pkg.dependencies)) {
+        if (typeof depVersion === 'string') {
+          pkg.dependencies[depName] = await resolveWorkspaceDependency(depName, depVersion)
+        }
+      }
+    }
+
     // Remove Prisma dependencies if not included
     if (!context.includePrisma) {
       delete pkg.dependencies['@prisma/client']
@@ -111,7 +121,7 @@ async function transformAndWriteFile(
   } else if (fileName === 'README.md') {
     // Replace project name in README
     transformed = content
-      .replace(/@horn\/orpc-hono Example/g, `${context.projectName}`)
+      .replace(/@outscope\/orpc-hono Example/g, `${context.projectName}`)
       .replace(/example-beta/g, context.projectName)
   }
 

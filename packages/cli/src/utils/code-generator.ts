@@ -35,7 +35,7 @@ export function generateController(name: string, featureName: string): string {
   const className = `${toPascalCase(name)}Controller`
   const contractName = toCamelCase(name)
 
-  return `import { Controller, Implement, Implementer } from '@horn/orpc-hono'
+  return `import { Controller, Implement, Implementer } from '@outscope/orpc-hono'
 import { ${contractName} } from '@contracts/${toKebabCase(featureName)}'
 import { pub } from '@libs/orpc/orpc'
 import { ${contractName}Service } from './${toKebabCase(name)}.service'

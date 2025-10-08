@@ -1,8 +1,8 @@
 {
-  "name": "@horn/example-orpc-hono",
+  "name": "@outscope/example-orpc-hono",
   "version": "0.1.0",
   "private": true,
-  "description": "Production-ready example of @horn/orpc-hono - OOP decorator pattern for type-safe APIs",
+  "description": "Production-ready example of @outscope/orpc-hono - OOP decorator pattern for type-safe APIs",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -16,7 +16,7 @@
   "dependencies": {
     "@hono/node-server": "^1.19.5",
     "@hono/swagger-ui": "^0.5.2",
-    "@horn/orpc-hono": "workspace:*",
+    "@outscope/orpc-hono": "workspace:*",
     "@orpc/client": "^1.9.3",
     "@orpc/contract": "^1.9.3",
     "@orpc/openapi": "^1.9.3",

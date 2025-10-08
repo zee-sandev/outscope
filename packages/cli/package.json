@@ -1,10 +1,11 @@
 {
-  "name": "@horn/cli",
+  "name": "@outscope/cli",
   "version": "0.1.0",
-  "description": "CLI tool for scaffolding @horn/orpc-hono projects",
+  "description": "CLI tool for scaffolding @outscope/orpc-hono projects",
   "type": "module",
   "bin": {
-    "horn": "./bin/horn.js"
+    "outscope": "./bin/outscope.js",
+    "osp": "./bin/outscope.js"
   },
   "exports": {
     ".": {
@@ -20,7 +21,8 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "echo \"No tests yet\""
   },
   "dependencies": {
     "commander": "^12.1.0",
@@ -42,8 +44,21 @@
     "scaffold",
     "orpc",
     "hono",
-    "horn",
+    "outscope",
     "typescript"
   ],
-  "license": "MIT"
+  "author": "Zee Sandev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zee-sandev/horn.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/zee-sandev/horn#readme",
+  "bugs": {
+    "url": "https://github.com/zee-sandev/horn/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

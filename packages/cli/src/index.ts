@@ -8,14 +8,14 @@ import { generate } from './commands/generate.js'
 const program = new Command()
 
 program
-  .name('horn')
-  .description('CLI tool for scaffolding @horn/orpc-hono projects')
+  .name('outscope')
+  .description('CLI tool for scaffolding @outscope/orpc-hono projects')
   .version('0.1.0')
 
 // Create command
 program
   .command('create [project-name]')
-  .description('Create a new Horn project')
+  .description('Create a new Outscope project')
   .option('-t, --template <template>', 'Template to use (beta)', 'beta')
   .action(async (projectName: string | undefined) => {
     try {
