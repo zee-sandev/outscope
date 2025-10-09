@@ -62,18 +62,14 @@ export interface ImplementationMetadata<TInput = unknown, TOutput = unknown, TCo
   methodName: string | symbol
   /** The method implementation */
   method: (...args: unknown[]) => unknown | Promise<unknown>
+  /** Optional middleware to apply to this specific method */
+  middleware?: unknown
 }
 
 /**
  * Configuration options for ORPCHono initialization
  */
 export interface ORPCHonoOptions<TContract extends AnyContractRouter = AnyContractRouter> {
-  /**
-   * URL prefix for all routes (e.g., '/api')
-   * @default ''
-   */
-  prefix?: string
-
   /**
    * Hono middleware functions to apply globally
    * @default []
@@ -84,6 +80,12 @@ export interface ORPCHonoOptions<TContract extends AnyContractRouter = AnyContra
    * Root contract router for automatic path resolution
    */
   contract?: TContract
+
+  /**
+   * oRPC producer (e.g., implement(contract).$context<ORPCContext>())
+   * Used as base implementer for all procedures
+   */
+  producer?: unknown
 }
 
 /**
@@ -131,6 +133,14 @@ export interface RouteRegistration {
   method: HttpMethod
   /** Handler function */
   handler: (c: Context) => Promise<Response>
+}
+
+/**
+ * Route registration configuration
+ */
+export interface RouteRegisterConfig {
+  contractRouter?: AnyContractRouter
+  producer?: unknown
 }
 
 /**

@@ -13,8 +13,9 @@ import type { ImplementationMetadata } from '../domain/types'
  */
 const METADATA_KEYS = {
   CONTROLLER: Symbol('orpc:controller'),
-  IMPLEMENTER: Symbol('orpc:implementer'),
   IMPLEMENTATIONS: Symbol('orpc:implementations'),
+  MIDDLEWARE: Symbol('orpc:middleware'),
+  METHOD_MIDDLEWARE: Symbol('orpc:method-middleware'),
 } as const
 
 /**
@@ -42,9 +43,7 @@ export function isController(target: Function): boolean {
  * @param target - The class constructor
  * @param implementer - The implementer instance to store
  */
-export function setImplementer<T>(target: Function, implementer: T): void {
-  Reflect.defineMetadata(METADATA_KEYS.IMPLEMENTER, implementer, target)
-}
+// Implementer metadata removed
 
 /**
  * Retrieve the implementer instance for a controller class
@@ -52,9 +51,7 @@ export function setImplementer<T>(target: Function, implementer: T): void {
  * @param target - The class constructor
  * @returns The implementer instance if available
  */
-export function getImplementer<T = unknown>(target: Function): T | undefined {
-  return Reflect.getMetadata(METADATA_KEYS.IMPLEMENTER, target) as T | undefined
-}
+// Implementer metadata removed
 
 /**
  * Add an implementation to a controller class
@@ -86,6 +83,70 @@ export function getImplementations(target: Function): ImplementationMetadata[] {
  */
 export function hasImplementations(target: Function): boolean {
   return getImplementations(target).length > 0
+}
+
+/**
+ * Store middleware for a controller class
+ *
+ * @param target - The class constructor
+ * @param middleware - The middleware to store
+ */
+export function setMiddleware<T>(target: Function, middleware: T): void {
+  Reflect.defineMetadata(METADATA_KEYS.MIDDLEWARE, middleware, target)
+}
+
+/**
+ * Retrieve the middleware for a controller class
+ *
+ * @param target - The class constructor
+ * @returns The middleware if available
+ */
+export function getMiddleware<T = unknown>(target: Function): T | undefined {
+  return Reflect.getMetadata(METADATA_KEYS.MIDDLEWARE, target) as T | undefined
+}
+
+/**
+ * Store middleware for a specific method in a controller class
+ *
+ * @param target - The class prototype
+ * @param methodName - The method name
+ * @param middleware - The middleware to store
+ */
+export function setMethodMiddleware<T>(
+  target: Object,
+  methodName: string | symbol,
+  middleware: T
+): void {
+  // Get constructor from target (which is the prototype)
+  const constructor = (target as any).constructor
+  const existing = getMethodMiddlewares(constructor)
+  const updated = { ...existing, [methodName]: middleware }
+  Reflect.defineMetadata(METADATA_KEYS.METHOD_MIDDLEWARE, updated, constructor)
+}
+
+/**
+ * Retrieve middleware for a specific method in a controller class
+ *
+ * @param target - The class constructor
+ * @param methodName - The method name
+ * @returns The middleware if available
+ */
+export function getMethodMiddleware<T = unknown>(
+  target: Function,
+  methodName: string | symbol
+): T | undefined {
+  const middlewares = getMethodMiddlewares(target)
+  return middlewares?.[methodName] as T | undefined
+}
+
+/**
+ * Get all method middlewares from a controller class
+ *
+ * @param target - The class constructor
+ * @returns Map of method names to middleware
+ */
+export function getMethodMiddlewares(target: Function): Record<string | symbol, unknown> {
+  return Reflect.getMetadata(METADATA_KEYS.METHOD_MIDDLEWARE, target) ?? {}
 }
 
 /**

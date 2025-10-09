@@ -1,11 +1,13 @@
 import type { ImplementationMetadata } from '../domain/types'
 import {
   markAsController,
-  setImplementer,
   addImplementation,
   isController,
-  getImplementer,
   getImplementations,
+  setMiddleware,
+  getMiddleware,
+  setMethodMiddleware,
+  getMethodMiddleware,
 } from './metadata'
 
 /**
@@ -63,10 +65,70 @@ export function Controller(): ClassDecorator {
  * }
  * ```
  */
-export function Implementer<T>(implementer: T): ClassDecorator {
-  return (target: Function) => {
-    setImplementer(target, implementer)
-  }
+// Implementer decorator removed
+
+/**
+ * Applies middleware chain to controller or method
+ *
+ * Can be used as a class decorator to apply middleware to all methods in the controller,
+ * or as a method decorator to apply middleware to a specific method.
+ *
+ * The middleware will be applied to the base implementer before creating procedures.
+ * This allows you to use middleware chains like `authed` that include authentication,
+ * authorization, or other cross-cutting concerns.
+ *
+ * The middleware must have access to the contract structure and can be created
+ * using the `.use()` method on an implementer.
+ *
+ * @param middleware - The middleware chain to apply
+ *
+ * @example Class-level middleware
+ * ```typescript
+ * const pub = implement(contract).$context<MyContext>()
+ * const authed = pub.use(authMiddleware)
+ *
+ * @Controller()
+ * @Middleware(authed)
+ * class UserController {
+ *   @Implement(contract.user.getCurrentUser)
+ *   getCurrentUser({ context }: { context: MyContext & { user: User } }) {
+ *     return context.user // user is now available from authed middleware
+ *   }
+ * }
+ * ```
+ *
+ * @example Method-level middleware
+ * ```typescript
+ * const pub = implement(contract).$context<MyContext>()
+ * const authed = pub.use(authMiddleware)
+ *
+ * @Controller()
+ * class UserController {
+ *   @Middleware(authed)
+ *   @Implement(contract.user.getCurrentUser)
+ *   getCurrentUser({ context }: { context: MyContext & { user: User } }) {
+ *     return context.user // user is now available from authed middleware
+ *   }
+ *
+ *   @Implement(contract.user.getPublicProfile)
+ *   getPublicProfile({ input }: { input: { id: string } }) {
+ *     // This method doesn't use authed middleware
+ *     return { id: input.id, name: 'Public User' }
+ *   }
+ * }
+ * ```
+ */
+export function Middleware<T>(middleware: T): ClassDecorator & MethodDecorator {
+  return ((target: Function | Object, propertyKey?: string | symbol) => {
+    // Class decorator
+    if (typeof target === 'function') {
+      setMiddleware(target, middleware)
+    }
+    // Method decorator
+    else if (propertyKey !== undefined) {
+      setMethodMiddleware(target, propertyKey, middleware)
+    }
+  }) as ClassDecorator & MethodDecorator
 }
 
 /**
@@ -114,4 +176,4 @@ export function Implement<TInput = unknown, TOutput = unknown, TContext = unknow
 }
 
 // Re-export metadata accessors for public API
-export { isController, getImplementer, getImplementations }
+export { isController, getImplementations, getMiddleware, getMethodMiddleware }

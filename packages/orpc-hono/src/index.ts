@@ -9,7 +9,7 @@
 export { ORPCHono } from './core/orpc-hono'
 
 // Decorators
-export { Controller, Implement, Implementer } from './infrastructure/decorators'
+export { Controller, Implement, Middleware } from './infrastructure/decorators'
 
 // Types
 export type {

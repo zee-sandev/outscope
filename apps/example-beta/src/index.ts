@@ -7,15 +7,17 @@ import { onError } from '@orpc/server'
 import { CORSPlugin } from '@orpc/server/plugins'
 import { OpenAPIGenerator } from '@orpc/openapi'
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
+import { RPCHandler } from '@orpc/server/fetch'
 import { ZodToJsonSchemaConverter } from '@orpc/zod'
 import type { Context, Next } from 'hono'
 import { ORPCHono } from '@horn/orpc-hono'
 import { createContext, type ORPCContext } from 'libs/orpc/context'
 import { contract } from './contracts'
+import { pub } from 'libs/orpc/orpc'
 import { loadControllers } from '@libs/controller-loader'
 import { initLogger } from '@libs/logger'
 
-const PORT = 3000
+const PORT = 3005
 const API_PREFIX = '/api'
 const RPC_PREFIX = '/rpc'
 
@@ -28,7 +30,7 @@ function setupLogger(app: Hono) {
       options: {
         colorize: true,
         translateTime: 'SYS:standard',
-        ignore: 'pid,hostname,req,res',
+        ignore: 'pid,hostname',
       },
     },
     pretty: true,
@@ -42,8 +44,8 @@ function setupLogger(app: Hono) {
 
 async function setupORPC(app: Hono) {
   const orpcHono = new ORPCHono({
-    prefix: RPC_PREFIX,
     contract,
+    producer: pub, // Pass the producer with context
   })
 
   // Auto-load all controllers from features
@@ -64,11 +66,34 @@ function createOpenAPIHandler(router: ReturnType<typeof setupORPC> extends Promi
   })
 }
 
+function createRPCHandler(router: ReturnType<typeof setupORPC> extends Promise<infer R> ? R : never) {
+  return new RPCHandler(router, {
+    plugins: [new CORSPlugin()],
+    interceptors: [onError((error) => console.error(error))],
+  })
+}
+
 function setupAPIRoutes(app: Hono, openAPIHandler: OpenAPIHandler<ORPCContext>) {
   app.use(`${API_PREFIX}/*`, async (c: Context, next: Next) => {
     const context = await createContext({ honoContext: c })
     const { matched, response } = await openAPIHandler.handle(c.req.raw, {
       prefix: API_PREFIX,
+      context,
+    })
+
+    if (matched) {
+      return c.newResponse(response.body, response)
+    }
+
+    await next()
+  })
+}
+
+function setupRPCRoutes(app: Hono, rpcHandler: RPCHandler<ORPCContext>) {
+  app.use(`${RPC_PREFIX}/*`, async (c: Context, next: Next) => {
+    const context = await createContext({ honoContext: c })
+    const { matched, response } = await rpcHandler.handle(c.req.raw, {
+      prefix: RPC_PREFIX,
       context,
     })
 
@@ -123,7 +148,9 @@ async function bootstrap() {
   setupLogger(app)
   const router = await setupORPC(app)
   const openAPIHandler = createOpenAPIHandler(router)
+  const rpcHandler = createRPCHandler(router)
   setupAPIRoutes(app, openAPIHandler)
+  setupRPCRoutes(app, rpcHandler)
   const openApiDoc = await generateOpenAPIDoc()
   setupDocumentationRoutes(app, openApiDoc)
   startServer(app)

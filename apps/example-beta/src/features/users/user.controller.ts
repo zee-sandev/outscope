@@ -1,6 +1,6 @@
-import { Controller, Implement, Implementer } from '@horn/orpc-hono'
+import { Controller, Implement, Middleware } from '@horn/orpc-hono'
 import { user } from '@contracts/user'
-import { authed } from '@libs/orpc/orpc'
+import { authMiddleware, pub } from '@libs/orpc/orpc'
 import type { User } from '@libs/orpc/context'
 import type {
   GetCurrentUserInput,
@@ -8,7 +8,7 @@ import type {
 } from '@schemas/user'
 
 @Controller()
-@Implementer(authed)
+@Middleware(authMiddleware)
 export class UserController {
   @Implement(user.getCurrentUser)
   async getCurrentUser(

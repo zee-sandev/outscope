@@ -25,7 +25,6 @@ import { ControllerRegistrar } from '../application/controller-registrar'
  *
  * const app = new Hono()
  * const orpcHono = new ORPCHono({
- *   prefix: '/api',
  *   contract,
  * })
  *
@@ -35,22 +34,22 @@ import { ControllerRegistrar } from '../application/controller-registrar'
  * ```
  */
 export class ORPCHono<TContract extends AnyContractRouter = AnyContractRouter> {
-  private readonly prefix: string
   private readonly interceptors: HonoMiddleware[]
   private readonly contract?: TContract
+  private readonly producer?: unknown
 
   /**
    * Create a new ORPCHono instance
    *
    * @param options - Configuration options
-   * @param options.prefix - URL prefix for all routes (default: '')
    * @param options.interceptors - Global middleware functions (default: [])
    * @param options.contract - Root contract router for path resolution
+   * @param options.producer - oRPC producer (e.g., implement(contract).$context<ORPCContext>())
    */
   constructor(options: ORPCHonoOptions<TContract> = {}) {
-    this.prefix = options.prefix ?? ''
     this.interceptors = options.interceptors ?? []
     this.contract = options.contract
+    this.producer = options.producer
   }
 
   /**
@@ -113,8 +112,8 @@ export class ORPCHono<TContract extends AnyContractRouter = AnyContractRouter> {
     controllers: unknown[]
   ): Promise<AnyContractRouter> {
     const registrar = new ControllerRegistrar({
-      prefix: this.prefix,
-      contractRouter: this.contract,
+      contractRouter: this.contract as AnyContractRouter,
+      producer: this.producer,
     })
 
     const router: AnyContractRouter = {} as AnyContractRouter
@@ -157,15 +156,6 @@ export class ORPCHono<TContract extends AnyContractRouter = AnyContractRouter> {
   }
 
   /**
-   * Get the configured URL prefix
-   *
-   * @returns The URL prefix
-   */
-  getPrefix(): string {
-    return this.prefix
-  }
-
-  /**
    * Get the configured contract router
    *
    * @returns The contract router if configured
@@ -181,5 +171,14 @@ export class ORPCHono<TContract extends AnyContractRouter = AnyContractRouter> {
    */
   getInterceptors(): HonoMiddleware[] {
     return [...this.interceptors]
+  }
+
+  /**
+   * Get the configured producer
+   *
+   * @returns The producer if configured
+   */
+  getProducer(): unknown {
+    return this.producer
   }
 }

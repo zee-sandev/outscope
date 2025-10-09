@@ -1,10 +1,10 @@
 import type { Hono } from 'hono'
+import { RPCHandler } from '@orpc/server/fetch'
 import { implement } from '@orpc/server'
 import type { AnyContractRouter } from '@orpc/contract'
-import type { WithORPCMetadata } from '../domain/types'
+import type { RouteRegisterConfig, WithORPCMetadata } from '../domain/types'
 import { NotAControllerError, MissingHandlerError } from '../domain/errors'
-import { isController, getImplementations, getImplementer } from '../infrastructure/decorators'
-import { RouteRegistrar, type RouteRegistrarConfig } from './route-registrar'
+import { isController, getImplementations, getMiddleware, getMethodMiddleware } from '../infrastructure/decorators'
 import { ContractResolver } from './contract-resolver'
 import { InputExtractor } from './input-extractor'
 
@@ -19,14 +19,14 @@ import { InputExtractor } from './input-extractor'
  * 5. Build router structure
  */
 export class ControllerRegistrar {
-  private readonly routeRegistrar: RouteRegistrar
+  private readonly config: RouteRegisterConfig
   private readonly contractResolver: ContractResolver
   private readonly inputExtractor: InputExtractor
 
-  constructor(config: RouteRegistrarConfig) {
+  constructor(config: RouteRegisterConfig) {
+    this.config = config
     this.contractResolver = new ContractResolver()
     this.inputExtractor = new InputExtractor()
-    this.routeRegistrar = new RouteRegistrar(config)
   }
 
   /**
@@ -46,137 +46,115 @@ export class ControllerRegistrar {
     const implementations = getImplementations(controllerClass)
 
     if (implementations.length === 0) {
-      console.warn(`Controller ${controllerClass.name} has no @Implement() decorated methods`)
       return {} as AnyContractRouter
     }
 
-    // Get class-level implementer if available
-    const classImplementer = getImplementer(controllerClass)
+    // Get class-level middleware if available
+    const classMiddleware = getMiddleware(controllerClass)
 
-    // Build handlers object for router
-    const handlers: Record<string, any> = {}
-
-    for (const implementation of implementations) {
-      const { contract, method } = implementation
-      const boundMethod = method.bind(controller)
-
-      // Resolve contract path first
-      const contractPath = this.routeRegistrar.resolveContractPath(contract)
-
-      // Create procedure with contract path for navigation
-      const procedure = this.createProcedure(contract, boundMethod, classImplementer, contractPath)
-
-      // Register routes with Hono
-      this.routeRegistrar.register(app, contract, procedure, contractPath)
-
-      // Build handlers structure
-      this.addHandlerToStructure(handlers, contractPath, boundMethod, implementation.methodName)
-    }
-
-    // If we have a class implementer with router method, use it
-    if (this.hasRouterMethod(classImplementer)) {
-      return (classImplementer as any).router(handlers)
-    }
-
-    // Fallback: build router manually with procedures
+    // Build router manually with procedures
     const router: AnyContractRouter = {} as AnyContractRouter
+
     for (const implementation of implementations) {
-      const { contract, method } = implementation
+      const { contract, method, methodName } = implementation
       const boundMethod = method.bind(controller)
-      const contractPath = this.routeRegistrar.resolveContractPath(contract)
-      const procedure = this.createProcedure(contract, boundMethod, classImplementer, contractPath)
+
+      // Get method-level middleware if available
+      const methodMiddleware = getMethodMiddleware(controllerClass, methodName)
+
+      // Resolve contract path
+      const contractPath = this.config.contractRouter
+        ? this.contractResolver.findContractPath(this.config.contractRouter, contract)
+        : []
+
+      // Create procedure with proper middleware handling
+      const procedure = this.createProcedure(
+        contract,
+        boundMethod,
+        contractPath,
+        this.config.producer,
+        classMiddleware,
+        methodMiddleware
+      )
+
+      // Build router structure
       const structure = this.buildRouterStructure(contractPath, procedure, implementation.methodName)
-      this.deepMerge(router as any, structure as any)
+      this.deepMerge(router as Record<string, unknown>, structure as Record<string, unknown>)
     }
 
     return router
   }
 
-  /**
-   * Add handler to nested structure
-   *
-   * @param handlers - Handlers object to build
-   * @param contractPath - Path segments
-   * @param handler - Handler function
-   * @param methodName - Fallback method name
-   */
-  private addHandlerToStructure(
-    handlers: Record<string, any>,
-    contractPath: string[],
-    handler: Function,
-    methodName: string | symbol
-  ): void {
-    if (contractPath.length === 0) {
-      handlers[String(methodName)] = handler
-      return
-    }
-
-    let current = handlers
-    for (let i = 0; i < contractPath.length - 1; i++) {
-      const key = contractPath[i]
-      if (!current[key]) {
-        current[key] = {}
-      }
-      current = current[key]
-    }
-
-    const lastKey = contractPath[contractPath.length - 1]
-    current[lastKey] = handler
-  }
 
   /**
    * Create an oRPC procedure from contract and method
    *
    * @param contract - Contract procedure
    * @param boundMethod - Bound controller method
-   * @param classImplementer - Optional class-level implementer
    * @param contractPath - Path to navigate within implementer
+   * @param producer - Base producer/implementer
+   * @param classMiddleware - Optional class-level middleware
+   * @param methodMiddleware - Optional method-level middleware
    * @returns Procedure with handler
    */
   private createProcedure(
     contract: unknown,
     boundMethod: Function,
-    classImplementer?: unknown,
-    contractPath?: string[]
+    contractPath: string[],
+    producer?: unknown,
+    classMiddleware?: unknown,
+    methodMiddleware?: unknown
   ): WithORPCMetadata {
-    // Try to navigate to the procedure using contract path
-    let procedureImplementer: unknown
+    // Start with base producer or create fresh implementer
+    let baseImplementer: unknown = producer || implement(contract as AnyContractRouter)
 
-    if (classImplementer && contractPath && contractPath.length > 0) {
-      // Navigate through the implementer structure using contract path
-      let current: any = classImplementer
+    // Apply middleware to base implementer first
+    let middlewareAppliedImplementer = baseImplementer
+
+    // Apply class-level middleware if available
+    if (classMiddleware && this.hasUseMethod(middlewareAppliedImplementer)) {
+      middlewareAppliedImplementer = (middlewareAppliedImplementer as { use: (middleware: unknown) => unknown }).use(classMiddleware)
+    }
+
+    // Apply method-level middleware if available (takes precedence over class middleware)
+    if (methodMiddleware && this.hasUseMethod(middlewareAppliedImplementer)) {
+      middlewareAppliedImplementer = (middlewareAppliedImplementer as { use: (middleware: unknown) => unknown }).use(methodMiddleware)
+    }
+
+    // Navigate to the specific procedure in the middleware-applied implementer
+    let finalImplementer: unknown
+    if (contractPath.length > 0) {
+      let current: any = middlewareAppliedImplementer
       for (const key of contractPath) {
         if (current && typeof current === 'object' && key in current) {
           current = current[key]
         } else {
-          current = null
-          break
+          throw new MissingHandlerError(`Contract path ${contractPath.join('.')} not found in middleware-applied implementer`)
         }
       }
-
-      // Use the navigated procedure if it has the handler method
-      if (current && this.hasHandlerMethod(current)) {
-        procedureImplementer = current
-      } else {
-        procedureImplementer = implement(contract as AnyContractRouter)
-      }
-    } else if (classImplementer) {
-      const existing = this.contractResolver.findProcedure(classImplementer, contract)
-      procedureImplementer = existing ?? implement(contract as AnyContractRouter)
+      finalImplementer = current
     } else {
-      procedureImplementer = implement(contract as AnyContractRouter)
+      // Try to find the procedure by contract reference
+      const found = this.contractResolver.findProcedure(middlewareAppliedImplementer, contract)
+      if (found) {
+        finalImplementer = found
+      } else {
+        finalImplementer = middlewareAppliedImplementer
+      }
     }
 
-    // Validate implementer has handler method
-    if (!this.hasHandlerMethod(procedureImplementer)) {
-      throw new MissingHandlerError(typeof procedureImplementer)
+    // Validate that we have a valid implementer with handler method
+    if (!this.hasHandlerMethod(finalImplementer)) {
+      throw new MissingHandlerError(`No handler method found for contract at path: ${contractPath.join('.')}`)
     }
 
-    // Create procedure with normalized input handling
-    return procedureImplementer.handler(({ input, context }: { input: unknown; context: unknown }) => {
-      const normalizedInput = this.inputExtractor.normalize(input)
-      return boundMethod(normalizedInput, context)
-    })
+    // Create and return the procedure
+    return (finalImplementer as { handler: (fn: Function) => WithORPCMetadata }).handler(
+      ({ input, context }: { input: unknown; context: unknown }) => {
+        const normalizedInput = this.inputExtractor.normalize(input)
+        return boundMethod(normalizedInput, context)
+      }
+    )
   }
 
   /**
@@ -259,21 +237,28 @@ export class ControllerRegistrar {
   }
 
   /**
-   * Type guard to check if implementer has router method
+   * Type guard to check if implementer has use method
    *
    * @param implementer - Implementer to check
-   * @returns true if has router method
+   * @returns true if has use method
    */
-  private hasRouterMethod(
+  private hasUseMethod(
     implementer: unknown
-  ): implementer is { router: (handlers: Record<string, any>) => AnyContractRouter } {
-    return (
-      typeof implementer === 'object' &&
-      implementer !== null &&
-      'router' in implementer &&
-      typeof (implementer as { router: unknown }).router === 'function'
-    )
+  ): implementer is { use: (middleware: unknown) => unknown } {
+    if (typeof implementer !== 'object' || implementer === null) {
+      return false
+    }
+    
+    // Check if use method exists and is a function
+    // Use try-catch to handle cases where use might be a getter/setter
+    try {
+      const useMethod = (implementer as { use: unknown }).use
+      return typeof useMethod === 'function'
+    } catch {
+      return false
+    }
   }
+
 
   /**
    * Deep merge source into target
