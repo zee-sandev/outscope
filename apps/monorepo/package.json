@@ -10,7 +10,7 @@
     "typecheck": "turbo typecheck",
     "test": "turbo test",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "prepare": "husky install || true",
+    "prepare": "husky || true",
     "db:generate": "pnpm --filter api db:generate",
     "db:push": "pnpm --filter api db:push",
     "db:migrate": "pnpm --filter api db:migrate",
@@ -19,7 +19,7 @@
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "husky": "^8.0.0",
+    "husky": "^9.0.0",
     "lint-staged": "^16.2.3",
     "prettier": "^3.6.2",
     "turbo": "^2.5.5",
