@@ -68,6 +68,7 @@ export async function createProject(projectName?: string): Promise<void> {
     projectName: options.projectName,
     description: `A project built with @outscope/orpc-hono`,
     includePrisma: options.includePrisma,
+    templateRootPath: templatePath,
   }
 
   // Copy template

@@ -96,8 +96,11 @@ async function transformAndWriteFile(
     const pkg = JSON.parse(content)
 
     // Only change name/description/version for root package.json
-    // Don't change @workspace/* packages (they're internal workspace packages)
-    if (!pkg.name?.startsWith('@workspace/')) {
+    const isRootPackage = context.templateRootPath
+      ? sourcePath === join(context.templateRootPath, 'package.json')
+      : false
+
+    if (isRootPackage) {
       pkg.name = context.projectName
       pkg.description = context.description
       pkg.version = '0.1.0'

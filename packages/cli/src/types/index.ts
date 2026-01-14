@@ -18,4 +18,5 @@ export interface TemplateContext {
   projectName: string
   description: string
   includePrisma: boolean
+  templateRootPath?: string
 }
