@@ -68,7 +68,7 @@ async function copyFile(
   const fileName = sourcePath.split('/').pop() || ''
 
   // Files that need transformation
-  const needsTransform = ['package.json', 'README.md']
+  const needsTransform = ['package.json', 'README.md', 'pnpm-workspace.yaml']
 
   if (needsTransform.includes(fileName)) {
     await transformAndWriteFile(sourcePath, targetPath, context)
@@ -107,6 +107,15 @@ async function transformAndWriteFile(
       }
     }
 
+    // Resolve workspace:* devDependencies to published versions
+    if (pkg.devDependencies) {
+      for (const [depName, depVersion] of Object.entries(pkg.devDependencies)) {
+        if (typeof depVersion === 'string') {
+          pkg.devDependencies[depName] = await resolveWorkspaceDependency(depName, depVersion)
+        }
+      }
+    }
+
     // Remove Prisma dependencies if not included
     if (!context.includePrisma) {
       delete pkg.dependencies['@prisma/client']
@@ -123,6 +132,12 @@ async function transformAndWriteFile(
     transformed = content
       .replace(/@outscope\/orpc-hono Example/g, `${context.projectName}`)
       .replace(/example-beta/g, context.projectName)
+  } else if (fileName === 'pnpm-workspace.yaml') {
+    // Remove invalid parent references (e.g., ../../packages/*)
+    transformed = content
+      .split('\n')
+      .filter(line => !line.includes('../../packages'))
+      .join('\n')
   }
 
   await mkdir(dirname(targetPath), { recursive: true })

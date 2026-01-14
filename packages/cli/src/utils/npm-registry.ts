@@ -21,12 +21,18 @@ export async function getLatestVersion(packageName: string): Promise<string | nu
 
 /**
  * Resolve workspace:* dependency to latest published version
+ * Skips @workspace/* packages as they are local workspace packages
  */
 export async function resolveWorkspaceDependency(
   packageName: string,
   currentVersion: string
 ): Promise<string> {
-  if (currentVersion === 'workspace:*') {
+  // Skip @workspace/* packages - they're local workspace packages
+  if (packageName.startsWith('@workspace/')) {
+    return currentVersion
+  }
+
+  if (currentVersion === 'workspace:*' || currentVersion === 'workspace:^') {
     const latestVersion = await getLatestVersion(packageName)
     return latestVersion ? `^${latestVersion}` : '^0.1.0' // Fallback to ^0.1.0
   }
