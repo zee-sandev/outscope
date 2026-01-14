@@ -1,6 +1,6 @@
 export interface CreateProjectOptions {
   projectName: string
-  template: 'beta'
+  template: 'beta' | 'monorepo'
   includePrisma: boolean
   installDependencies: boolean
   initDatabase: boolean

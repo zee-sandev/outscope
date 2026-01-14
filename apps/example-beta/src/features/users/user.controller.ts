@@ -1,4 +1,4 @@
-import { Controller, Implement, Middleware } from '@horn/orpc-hono'
+import { Controller, Implement, Middleware } from '@outscope/orpc-hono'
 import { user } from '@contracts/user'
 import { authMiddleware, pub } from '@libs/orpc/orpc'
 import type { User } from '@libs/orpc/context'

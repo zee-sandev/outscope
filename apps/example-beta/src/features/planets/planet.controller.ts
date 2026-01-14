@@ -1,4 +1,4 @@
-import { Controller, Implement, Middleware } from '@horn/orpc-hono'
+import { Controller, Implement, Middleware } from '@outscope/orpc-hono'
 import { planet } from '@contracts/planet'
 import { pub, authMiddleware } from '@libs/orpc/orpc'
 import { planetService } from './planet.service'

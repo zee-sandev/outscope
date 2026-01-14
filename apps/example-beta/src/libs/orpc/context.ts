@@ -1,4 +1,5 @@
-import type { Context as HonoContext } from "hono";
+import type { Context as HonoContext } from 'hono'
+import type { BaseORPCContext } from '@outscope/orpc-hono'
 
 export type User = {
   id: string
@@ -7,18 +8,16 @@ export type User = {
   role: string
 }
 
-export type ORPCContext = {
+export interface ORPCContext extends BaseORPCContext {
   user?: User
-  honoContext: HonoContext
 }
 
-export async function createContext({ honoContext }: { honoContext: HonoContext }) {
+export async function createContext({ honoContext }: { honoContext: HonoContext }): Promise<ORPCContext> {
   // No user in initial context - will be added by middleware if authenticated
   return {
     user: undefined,
-    honoContext: honoContext,
-  };
+    honoContext,
+  }
 }
 
-
-export type Context = Awaited<ReturnType<typeof createContext>>;
+export type Context = Awaited<ReturnType<typeof createContext>>

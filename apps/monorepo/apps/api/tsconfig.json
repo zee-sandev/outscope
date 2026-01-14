@@ -1,0 +1,23 @@
+{
+  "extends": "@workspace/typescript-config/base.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "baseUrl": "./src",
+    "paths": {
+      "@contracts/*": ["contracts/*"],
+      "@schemas/*": ["schemas/*"],
+      "@libs/*": ["libs/*"],
+      "@generated/*": ["generated/*"]
+    },
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "types": ["node"],
+    "outDir": "./dist"
+  },
+  "exclude": ["node_modules"]
+}

@@ -76,6 +76,12 @@ export function getTemplateConfig(template: string): DownloadTemplateOptions {
       branch: 'main',
       templatePath: 'apps/example-beta',
     },
+    monorepo: {
+      owner: 'zee-sandev',
+      repo: 'outscope',
+      branch: 'main',
+      templatePath: 'apps/monorepo',
+    },
   }
 
   const config = templates[template]

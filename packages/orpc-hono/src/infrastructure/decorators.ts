@@ -9,6 +9,7 @@ import {
   setMethodMiddleware,
   getMethodMiddleware,
 } from './metadata'
+import { normalizeError } from '../domain/errors'
 
 /**
  * Application decorators for oRPC-Hono integration
@@ -129,6 +130,65 @@ export function Middleware<T>(middleware: T): ClassDecorator & MethodDecorator {
       setMethodMiddleware(target, propertyKey, middleware)
     }
   }) as ClassDecorator & MethodDecorator
+}
+
+/**
+ * Wraps a controller method with automatic error handling
+ *
+ * This decorator catches any errors thrown by the method and normalizes them
+ * into consistent error responses. It eliminates the need for try-catch blocks
+ * in every controller method.
+ *
+ * The context string is automatically generated from the class and method name
+ * if not provided explicitly.
+ *
+ * @param context - Optional custom context string for error messages
+ *
+ * @example Without context (auto-detected)
+ * ```typescript
+ * @Controller()
+ * class UserController {
+ *   @CatchErrors()  // Context: "UserController.getUser"
+ *   @Implement(userContract.get)
+ *   async getUser(input: GetUserInput) {
+ *     const user = await userService.findById(input.id)
+ *     if (!user) throw new Error('User not found')
+ *     return user
+ *   }
+ * }
+ * ```
+ *
+ * @example With custom context
+ * ```typescript
+ * @Controller()
+ * class UserController {
+ *   @CatchErrors('UserController.customContext')
+ *   @Implement(userContract.get)
+ *   async getUser(input: GetUserInput) {
+ *     // ...
+ *   }
+ * }
+ * ```
+ */
+export function CatchErrors(context?: string): MethodDecorator {
+  return (
+    target: Object,
+    propertyKey: string | symbol,
+    descriptor: PropertyDescriptor
+  ): PropertyDescriptor => {
+    const originalMethod = descriptor.value
+    const methodContext = context || `${target.constructor.name}.${String(propertyKey)}`
+
+    descriptor.value = async function (...args: unknown[]) {
+      try {
+        return await originalMethod.apply(this, args)
+      } catch (error) {
+        throw normalizeError(error, methodContext)
+      }
+    }
+
+    return descriptor
+  }
 }
 
 /**

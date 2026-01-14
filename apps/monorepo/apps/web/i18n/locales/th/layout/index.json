@@ -1,0 +1,14 @@
+{
+  "sidebar": {
+    "home": "หน้าหลัก",
+    "posts": "โพสต์",
+    "profile": "โปรไฟล์",
+    "settings": "ตั้งค่า"
+  },
+  "header": {
+    "home": "หน้าหลัก",
+    "posts": "โพสต์",
+    "profile": "โปรไฟล์",
+    "settings": "ตั้งค่า"
+  }
+}

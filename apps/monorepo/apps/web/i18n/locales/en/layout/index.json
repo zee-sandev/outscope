@@ -1,0 +1,14 @@
+{
+  "sidebar": {
+    "home": "Home",
+    "posts": "Posts",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "header": {
+    "home": "Home",
+    "posts": "Posts",
+    "profile": "Profile",
+    "settings": "Settings"
+  }
+}

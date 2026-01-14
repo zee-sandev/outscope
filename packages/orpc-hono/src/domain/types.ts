@@ -154,3 +154,14 @@ export function hasORPCMetadata(obj: unknown): obj is WithORPCMetadata {
     typeof (obj as Record<string, unknown>)['~orpc'] === 'object'
   )
 }
+
+// Re-export plugin types that are part of the public API
+export type {
+  AppConfig,
+  OutscopeApp,
+  Plugin,
+  PluginContext,
+  PluginFactory,
+  ServerInfo,
+  ErrorHandler,
+} from '../plugins/types'

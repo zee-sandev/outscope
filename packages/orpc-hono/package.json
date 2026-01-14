@@ -1,7 +1,7 @@
 {
   "name": "@outscope/orpc-hono",
-  "version": "0.2.0",
-  "description": "Decorator-based OOP integration for oRPC with Hono framework - Build type-safe APIs with clean, object-oriented code",
+  "version": "0.3.0",
+  "description": "Full-featured framework for building type-safe APIs with oRPC and Hono - Decorator-based controllers, plugin system, and zero-config setup",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./plugins": {
+      "types": "./dist/plugins/index.d.ts",
+      "import": "./dist/plugins/index.js"
     }
   },
   "files": [
@@ -37,7 +41,10 @@
     "openapi",
     "middleware",
     "server",
-    "framework"
+    "framework",
+    "plugin",
+    "edge",
+    "cloudflare-workers"
   ],
   "peerDependencies": {
     "hono": "^4.0.0",
@@ -46,14 +53,34 @@
     "@orpc/server": "^1.9.0",
     "zod": "^3.0.0"
   },
+  "peerDependenciesMeta": {
+    "@orpc/openapi": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "reflect-metadata": "^0.2.2"
+  },
+  "optionalDependencies": {
+    "glob": "^11.0.0",
+    "pino": "^10.0.0",
+    "pino-pretty": "^13.0.0",
+    "@hono/swagger-ui": "^0.5.0",
+    "@hono/node-server": "^1.19.0",
+    "@orpc/zod": "^1.9.0"
   },
   "devDependencies": {
     "@orpc/contract": "^1.9.3",
     "@orpc/openapi": "^1.9.3",
     "@orpc/server": "^1.9.3",
+    "@orpc/zod": "^1.9.3",
+    "@hono/swagger-ui": "^0.5.0",
+    "@hono/node-server": "^1.19.0",
+    "@types/node": "^22.0.0",
+    "glob": "^11.0.0",
     "hono": "^4.9.10",
+    "pino": "^10.0.0",
+    "pino-pretty": "^13.0.0",
     "typescript": "^5.9.2",
     "zod": "^3.25.76"
   },

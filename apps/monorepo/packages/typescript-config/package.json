@@ -1,0 +1,12 @@
+{
+  "name": "@workspace/typescript-config",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "lint": "echo 'No linting needed for TypeScript config files'"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "title": "Authentication",
+  "login": {
+    "title": "Login",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Login",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Register here",
+    "error": "Invalid email or password"
+  },
+  "register": {
+    "title": "Register",
+    "email": "Email",
+    "password": "Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "tenantName": "Organization Name",
+    "submit": "Register",
+    "hasAccount": "Already have an account?",
+    "loginLink": "Login here",
+    "success": "Registration successful"
+  },
+  "logout": {
+    "title": "Logout",
+    "confirm": "Are you sure you want to logout?"
+  }
+}

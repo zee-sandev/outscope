@@ -1,0 +1,8 @@
+{
+  "title": "Home",
+  "welcome": "Welcome to Starter Template",
+  "description": "A full-stack monorepo starter template with Next.js, Hono, oRPC, and Prisma",
+  "search": {
+    "placeholder": "Search"
+  }
+}
