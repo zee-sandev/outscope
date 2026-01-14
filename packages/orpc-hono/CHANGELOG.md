@@ -1,5 +1,11 @@
 # @outscope/orpc-hono
 
+## 0.4.0
+
+### Minor Changes
+
+- Release minor version for both packages
+
 ## 0.2.0
 
 ### Minor Changes

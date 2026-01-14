@@ -1,6 +1,6 @@
 {
   "name": "@outscope/orpc-hono",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Full-featured framework for building type-safe APIs with oRPC and Hono - Decorator-based controllers, plugin system, and zero-config setup",
   "type": "module",
   "main": "./dist/index.js",
