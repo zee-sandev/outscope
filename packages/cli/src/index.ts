@@ -2,15 +2,19 @@
 
 import { Command } from 'commander'
 import pc from 'picocolors'
+import { createRequire } from 'module'
 import { createProject } from './commands/create.js'
 import { generate } from './commands/generate.js'
+
+const require = createRequire(import.meta.url)
+const pkg = require('../package.json')
 
 const program = new Command()
 
 program
   .name('outscope')
   .description('CLI tool for scaffolding @outscope/orpc-hono projects')
-  .version('0.1.0')
+  .version(pkg.version)
 
 // Create command
 program
