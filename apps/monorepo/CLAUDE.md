@@ -270,31 +270,38 @@ Edit `apps/api/prisma/schema.prisma`, then `pnpm db:migrate` + `pnpm db:generate
 
 ## Ruflo MCP Integration
 
-### Auto-Available (via .mcp.json)
+### Setup (Automatic)
 
-Ruflo MCP server starts automatically when Claude Code opens. 215 tools available.
-No `ruflo init` needed - `.mcp.json` alone is sufficient.
+Ruflo is initialized during project creation via `ruflo init --start-all --force`.
+MCP server starts automatically when Claude Code opens via `.mcp.json`. 215+ tools available.
 
-### Memory (call via MCP when needed)
+To re-initialize or override config: `npx ruflo@latest init --start-all --force`
+
+### Hive Mind (Queen-Worker Multi-Agent)
+
+Ruflo Hive Mind provides queen-led hierarchical orchestration with specialized workers.
+
+**Initialize via MCP:**
+
+- Swarm: `mcp__ruflo__swarm_init({ topology: "hierarchical", maxAgents: 8, strategy: "specialized" })`
+- Spawn: `mcp__ruflo__agent_spawn({ type: "architect|coder|tester|analyst|reviewer", name, capabilities })`
+
+**Topology selection:**
+
+| Topology | Agents | Use Case |
+|----------|--------|----------|
+| `hierarchical` | 6-8 | Standard features, structured dev (recommended) |
+| `hierarchical-mesh` | 10-15 | Complex cross-cutting features |
+| `mesh` | 4-6 | Collaborative exploration, peer review |
+| `ring` | 3-5 | Sequential pipelines (schema → API → frontend) |
+
+Strategy: `"specialized"` for role-based agents, `"balanced"` for general tasks.
+
+### Memory (Collective, Cross-Session)
 
 - Store: `mcp__ruflo__memory_store({ key, value, namespace })`
 - Search: `mcp__ruflo__memory_search({ query, limit })`
 - Retrieve: `mcp__ruflo__memory_retrieve({ key, namespace })`
-
-### Swarm (call via MCP for multi-agent)
-
-- Init: `mcp__ruflo__swarm_init({ topology: "hierarchical", maxAgents: 8, strategy: "specialized" })`
-- Spawn: `mcp__ruflo__agent_spawn({ type, name, capabilities })`
-
-### Configuration
-
-| Topology | Max Agents | Use Case |
-|----------|-----------|----------|
-| hierarchical | 6-8 | Coding tasks, low drift risk |
-| hierarchical-mesh | 10-15 | Complex features |
-| mesh | variable | Peer collaboration |
-
-Strategy: `"specialized"` for role-based, `"balanced"` for general.
 
 ### Token Optimization (~30-50% savings)
 
@@ -302,6 +309,14 @@ Strategy: `"specialized"` for role-based, `"balanced"` for general.
 - Agent Booster (WASM): skip LLM for simple code transforms (-15%)
 - Pattern caching: reuse from collective memory (-10%)
 - Optimal batching: group operations in single messages (-20%)
+
+### Override / Reset Config
+
+```bash
+npx ruflo@latest init --start-all --force    # Full re-init (overwrites existing)
+npx ruflo@latest init --enhanced --force      # Enhanced features
+npx ruflo@latest doctor --fix                 # Fix issues without re-init
+```
 
 ## Agent Teams (Recommended Compositions)
 

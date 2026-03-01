@@ -1,6 +1,7 @@
 import { resolve } from 'path'
 import pc from 'picocolors'
 import ora from 'ora'
+import { execa } from 'execa'
 import { promptCreateProject } from '../utils/prompts.js'
 import {
   copyTemplate,
@@ -123,6 +124,21 @@ export async function createProject(projectName?: string): Promise<void> {
     }
   }
 
+  // Initialize Ruflo (always runs, --force overrides existing config)
+  const rufloSpinner = ora('Initializing Ruflo orchestration...').start()
+  try {
+    await execa('npx', ['-y', 'ruflo@latest', 'init', '--start-all', '--force'], {
+      cwd: targetPath,
+      stdio: 'pipe',
+      env: { ...process.env, FORCE_COLOR: '0' },
+    })
+    rufloSpinner.succeed(pc.green('Ruflo initialized (hive + MCP + memory)'))
+  } catch (error) {
+    rufloSpinner.warn(
+      pc.yellow('Ruflo init skipped (run manually: npx ruflo@latest init --start-all --force)')
+    )
+  }
+
   // Success message
   console.log(pc.green(pc.bold('\n✓ Project created successfully!\n')))
 
@@ -141,6 +157,7 @@ export async function createProject(projectName?: string): Promise<void> {
   }
 
   console.log(`  ${pc.dim('$')} ${pc.cyan(getRunCommand(packageManager, 'dev'))}`)
+  console.log(`  ${pc.dim('$')} ${pc.cyan('claude')} ${pc.dim('# Open Claude Code with Ruflo Hive ready')}`)
   console.log()
 
   // Cleanup temp directory
