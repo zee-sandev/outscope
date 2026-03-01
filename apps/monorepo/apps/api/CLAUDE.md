@@ -1,98 +1,175 @@
-# CLAUDE.md
+# CLAUDE.md - API (apps/api)
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Overview
+
+Hono + oRPC backend using @outscope/orpc-hono OOP decorator framework.
+Contract-first development with auto-controller loading.
 
 ## Commands
 
-### Development
-
 ```bash
-pnpm dev              # Start dev server with hot-reload (tsx watch)
+pnpm dev              # Dev server with hot-reload (tsx watch, port 3000)
 pnpm build            # Build TypeScript to dist/
 pnpm start            # Run production build
-```
-
-### Database (Prisma)
-
-```bash
-pnpm db:generate      # Generate Prisma client (required after schema changes)
+pnpm db:generate      # Generate Prisma client (to src/generated/prisma)
 pnpm db:push          # Push schema changes to database
 pnpm db:migrate       # Create and run migrations
 pnpm db:studio        # Open Prisma Studio GUI
 ```
 
-Note: Prisma client is generated to `src/generated/prisma` (not default location).
-
 ## Architecture
 
-This is a type-safe API built with **@outscope/orpc-hono** - an OOP decorator-based framework combining Hono, oRPC, and Prisma.
+### Contract-First with 4 Layers
 
-### Core Pattern: Contract-First Development
-
-The architecture follows a strict contract-first approach with three layers:
-
-1. **Contracts** (`src/contracts/`) - Define API endpoints using oRPC contracts
-   - Each contract specifies HTTP method, path, input/output schemas
-   - Exported as modules and aggregated in `src/contracts/index.ts`
-
-2. **Schemas** (`src/schemas/`) - Zod validation schemas
-   - Define input/output shapes for all operations
-   - Export both schemas and TypeScript types
-
-3. **Features** (`src/features/`) - Feature modules with 3-tier structure:
-   - **Controller** - Decorated with `@Controller` and `@Implementer(pub)`, methods decorated with `@Implement(contract.operation)`
-   - **Service** - Business logic layer
-   - **Repository** - Data access layer (Prisma)
+```
+src/
+├── contracts/          # 1. oRPC contracts (oc.route + schemas)
+│   ├── auth.ts
+│   └── index.ts        # Contract aggregation
+├── schemas/            # 2. Zod schemas (input/output types)
+│   └── auth/
+│       └── index.ts
+├── features/           # 3. Feature modules
+│   └── auth/
+│       ├── auth.controller.ts   # @Controller + @Implement decorators
+│       ├── auth.service.ts      # Business logic
+│       ├── auth.repository.ts   # Prisma data access
+│       └── auth.serializer.ts   # DB model -> API output
+├── libs/
+│   ├── orpc/
+│   │   ├── context.ts   # ORPCContext, AuthedORPCContext, createContext
+│   │   └── orpc.ts      # pub instance, authMiddleware
+│   ├── auth.ts          # Better Auth config
+│   └── prisma.ts        # Prisma client
+├── generated/
+│   └── prisma/          # Generated Prisma client (DO NOT EDIT)
+└── index.ts             # Bootstrap: createApp()
+```
 
 ### Auto-Controller Loading
 
-Controllers are automatically discovered via glob patterns in `src/index.ts`:
+Controllers are discovered automatically via glob pattern:
 
 ```typescript
-loadControllers('src/features/**/*.controller.ts')
+const app = await createApp<ORPCContext>({
+  contract,
+  producer: pub,
+  controllers: 'src/features/**/*.controller.ts',
+  createContext,
+  apiPrefix: '/api',
+  rpcPrefix: '/rpc',
+  plugins: [corsPlugin(...), loggerPlugin(...), openapiPlugin(...)],
+})
 ```
 
-All classes exported from `*.controller.ts` files with `@Controller` decorator are auto-registered.
+No manual registration needed - just export a `@Controller()` class.
 
-### Database Architecture
+## Decorator Reference
 
-**Multi-tenant system** with PostgreSQL (not SQLite despite README):
+All from `@outscope/orpc-hono`:
 
-- Core entities: `Tenants`, `Users`, `BusinessInfos`, `Agents`
-- All business data scoped to `tenantId`
-- UUID primary keys with `gen_random_uuid()`
-- Snake_case database columns, camelCase in Prisma models
+| Decorator | Usage |
+|-----------|-------|
+| `@Controller()` | Class decorator, marks as auto-loadable controller |
+| `@Implement(contract.operation)` | Method decorator, binds to oRPC contract |
+| `@Middleware(authMiddleware)` | Method decorator, runs middleware before handler |
+| `@CatchErrors()` | Method decorator, wraps in error handler |
+| `extractBearerToken(context)` | Utility, gets Bearer token from request |
+| `createLogger(opts)` | Utility, creates Pino logger |
 
-### Path Aliases (tsconfig.json)
+## Context System
 
 ```typescript
-@contracts/*  → src/contracts/*
-@schemas/*    → src/schemas/*
-@libs/*       → src/libs/*
-@generated/*  → src/generated/*
+// libs/orpc/context.ts
+interface ORPCContext extends BaseORPCContext {
+  auth?: { userId: string; tenantId: string; email: string }
+}
+
+type AuthedORPCContext = ORPCContext & {
+  auth: { userId: string; tenantId: string; email: string }
+}
+
+// libs/orpc/orpc.ts
+export const pub = implement(contract).$context<ORPCContext>()
 ```
 
-### API Structure
+### authMiddleware
 
-- **Swagger UI**: `http://localhost:3000`
-- **OpenAPI Spec**: `http://localhost:3000/openapi.json`
-- **API Base**: `http://localhost:3000/api`
+- Reads `Authorization: Bearer {token}` header
+- Falls back to `better-auth.session_token` cookie
+- Validates session against database
+- Adds `auth` to context: `{ userId, tenantId, email }`
+- Throws `ORPCError('UNAUTHORIZED')` on failure
 
-All contracts automatically generate OpenAPI documentation.
+## Better Auth Integration
 
-### Context System
+Session-based auth with organization plugin:
 
-- Context defined in `src/libs/orpc/context.ts`
-- Base implementation in `src/libs/orpc/orpc.ts` as `pub`
-- Currently no authentication (commented out `authed` middleware exists as reference)
+- `auth.api.signUpEmail({ body: { email, password, name } })` - Register
+- `auth.api.signInEmail({ body: { email, password } })` - Login
+- Sessions stored in database, validated via token
+- Organizations: users have members with roles (owner, admin, member)
 
-### Adding New Features
+## Database (Prisma + SQLite)
 
-1. Create Zod schemas in `src/schemas/{feature}.ts`
-2. Define oRPC contracts in `src/contracts/{feature}.ts`
-3. Add contract to `src/contracts/index.ts`
-4. Create feature directory: `src/features/{feature}/`
-5. Implement controller with decorators (auto-loaded)
-6. Implement service and repository layers
+- Provider: SQLite (file:./dev.db)
+- Generated client: `src/generated/prisma` (NOT default location)
+- Tables: snake_case via `@@map()`, fields: camelCase
+- Primary keys: UUID string
+- Timestamps: `createdAt DateTime @default(now())`, `updatedAt DateTime @updatedAt`
 
-Controllers are discovered automatically - no manual registration needed.
+### Models
+
+User, Session, Account, Verification, Organization, Member, Invitation
+
+## Path Aliases
+
+```
+@contracts/* -> src/contracts/*
+@schemas/*   -> src/schemas/*
+@libs/*      -> src/libs/*
+@generated/* -> src/generated/*
+```
+
+## API Endpoints
+
+- `/` - Swagger UI (auto-generated from contracts)
+- `/api/*` - REST endpoints
+- `/rpc/*` - oRPC endpoints (frontend uses this)
+
+## Adding a New Feature
+
+1. **Schema**: `src/schemas/{feature}/index.ts`
+   - Define Zod schemas: `{Feature}InputSchema`, `{Feature}OutputSchema`
+   - Export types: `type {Feature}Input = z.infer<typeof {Feature}InputSchema>`
+
+2. **Contract**: `src/contracts/{feature}.ts`
+   - Use `oc.route({ method, path, summary, tags })` + `.input()` + `.output()`
+   - Group operations: `export const {feature} = { list, get, create, update, delete }`
+
+3. **Register**: Add to `src/contracts/index.ts`
+   - `export const contract = { auth, {feature} }`
+
+4. **Repository**: `src/features/{feature}/{feature}.repository.ts`
+   - Prisma queries, return raw DB types
+
+5. **Service**: `src/features/{feature}/{feature}.service.ts`
+   - Business logic, call repository, return typed results
+
+6. **Serializer**: `src/features/{feature}/{feature}.serializer.ts`
+   - Transform DB models to API output types
+
+7. **Controller**: `src/features/{feature}/{feature}.controller.ts`
+   - `@Controller()` class
+   - `@CatchErrors()` + `@Implement(contract.op)` per method
+   - `@Middleware(authMiddleware)` for protected endpoints
+   - Auto-loaded by glob pattern
+
+## Conventions
+
+- Error handling: `@CatchErrors()` decorator wraps all controller methods
+- Auth errors: throw `ORPCError('UNAUTHORIZED', { message: '...' })`
+- Business errors: throw `ORPCError('BAD_REQUEST', { message: '...' })`
+- Not found: throw `ORPCError('NOT_FOUND', { message: '...' })`
+- Logger: `createLogger({ level: 'debug', pretty: true })` per service
+- Protected files: `src/generated/`, `prisma/migrations/` (never edit directly)
