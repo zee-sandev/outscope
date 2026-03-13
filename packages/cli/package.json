@@ -1,6 +1,6 @@
 {
   "name": "@outscope/cli",
-  "version": "0.2.3",
+  "version": "1.0.0",
   "description": "CLI tool for scaffolding @outscope/nova projects",
   "type": "module",
   "bin": {

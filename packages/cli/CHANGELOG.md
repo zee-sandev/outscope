@@ -1,5 +1,11 @@
 # @outscope/cli
 
+## 1.0.0
+
+### Major Changes
+
+- Release major version for all packages
+
 ## 0.2.3
 
 ### Patch Changes
