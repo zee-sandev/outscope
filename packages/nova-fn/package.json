@@ -1,6 +1,6 @@
 {
   "name": "@outscope/nova-fn",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Lightweight functional oRPC integration for Hono - Pure functions, zero decorators, minimal overhead",
   "type": "module",
   "main": "./dist/index.js",
