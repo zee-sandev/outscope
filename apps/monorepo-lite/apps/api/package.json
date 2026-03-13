@@ -27,7 +27,7 @@
     "@orpc/openapi": "^1.9.3",
     "@orpc/server": "^1.9.3",
     "@orpc/zod": "^1.9.3",
-    "@outscope/nova-fn": "^0.1.0",
+    "@outscope/nova-fn": "^1.0.0",
     "@prisma/client": "^7.5.0",
     "@workspace/contracts": "workspace:*",
     "@workspace/schemas": "workspace:*",
