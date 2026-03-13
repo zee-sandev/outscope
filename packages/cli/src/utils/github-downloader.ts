@@ -82,6 +82,12 @@ export function getTemplateConfig(template: string): DownloadTemplateOptions {
       branch: 'main',
       templatePath: 'apps/monorepo',
     },
+    'monorepo-lite': {
+      owner: 'zee-sandev',
+      repo: 'outscope',
+      branch: 'main',
+      templatePath: 'apps/monorepo-lite',
+    },
   }
 
   const config = templates[template]

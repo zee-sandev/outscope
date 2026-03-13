@@ -4,6 +4,7 @@
 
 hono-next-turbo: Full-stack type-safe pnpm monorepo template.
 **oRPC is the core integration layer** between frontend and backend.
+**Contracts and schemas are shared packages** — not buried inside the API.
 
 - Package manager: pnpm@10.4.1
 - Runtime: Node.js >=20
@@ -17,12 +18,12 @@ hono-next-turbo: Full-stack type-safe pnpm monorepo template.
 | UI | React, shadcn/ui (new-york), Tailwind CSS | 19 / v4 |
 | State | Zustand (persisted localStorage) | 5.x |
 | i18n | next-intl (en + th) | 4.x |
-| Backend | Hono + @outscope/orpc-hono (OOP decorators) | 4.9 |
+| Backend | Hono + @outscope/nova (OOP decorators) | 4.9 |
 | **API Contract** | **@orpc/contract + @orpc/server + @orpc/client** | **1.9** |
 | ORM | Prisma (SQLite default) | 6.17 |
 | Auth | Better Auth (session-based, organization plugin) | 1.3 |
 | Validation | Zod | 4.x |
-| Logging | Pino + @outscope/orpc-hono createLogger | - |
+| Logging | Pino + @outscope/nova createLogger | - |
 
 ## Monorepo Structure
 
@@ -32,12 +33,13 @@ hono-next-turbo/
 │   ├── api/               # Hono + oRPC backend (port 3000)
 │   └── web/               # Next.js frontend (port 3001)
 ├── packages/
-│   ├── ui/                # shadcn/ui components (@workspace/ui)
+│   ├── contracts/         # @workspace/contracts — oRPC route contracts
+│   ├── schemas/           # @workspace/schemas   — Zod schemas + types
+│   ├── ui/                # @workspace/ui        — shadcn/ui components
 │   ├── eslint-config/     # Shared ESLint config
 │   └── typescript-config/ # Shared TypeScript configs
-├── CLAUDE.md              # This file
-├── AI-GUIDE.md            # Developer guide for AI tooling
-└── .mcp.json              # Ruflo MCP config (project-level)
+├── docs/                  # Architecture, auth, feature guide, conventions
+└── CLAUDE.md              # This file
 ```
 
 ## Development Commands
@@ -62,79 +64,136 @@ pnpm db:studio            # Open Prisma Studio
 # Package-specific
 pnpm --filter api dev     # Run only API
 pnpm --filter web dev     # Run only web
-pnpm --filter @workspace/ui lint  # Lint UI package
 ```
 
-## oRPC: Frontend-Backend Integration (Core Pattern)
+## Contract-First Architecture
 
-oRPC provides end-to-end type safety. Frontend imports contracts/schemas from the API directly.
+The shared contract packages are the foundation of type safety:
 
-### Contract Sharing (Type-Safe Bridge)
+```
+packages/schemas/     — Zod schemas (no framework deps)
+       ↓
+packages/contracts/   — oRPC contracts (routes + schemas)
+       ↓
+apps/api/             — implements contracts via @Controller + @Implement
+apps/web/             — consumes contracts via orpcClient
+```
 
-Frontend accesses contracts via TypeScript path aliases (apps/web/tsconfig.json):
+### Adding a New API Endpoint
 
-- `api/contracts` -> `../api/src/contracts/index.ts` (typed contract definitions)
-- `api/schemas/*` -> `../api/src/schemas/*/index.ts` (Zod schemas + inferred types)
-- `@schemas/*` -> `../api/src/schemas/*` (alternative alias)
-- `@generated/*` -> `../api/src/generated/*` (Prisma types)
+1. Schema in `packages/schemas/src/{feature}/`
+2. Contract in `packages/contracts/src/{feature}.ts`
+3. Register in `packages/contracts/src/index.ts`
+4. Implement in `apps/api/src/modules/{feature}/`
+5. Use in `apps/web/` via `orpcClient.{feature}.{operation}()`
 
-### oRPC Client Stack (apps/web/lib/orpc/)
+See `docs/adding-features.md` for a complete walkthrough.
+
+## Better Auth Integration
+
+Auth uses Better Auth's `auth.api.getSession()` — no manual DB session queries.
+
+### authMiddleware Pattern
+
+```typescript
+export const authMiddleware = pub.middleware(async ({ next, context }) => {
+  // context.headers = raw request headers (set in createContext)
+  const session = await auth.api.getSession({ headers: context.headers })
+
+  if (!session?.user || !session?.session) {
+    throw new ORPCError('UNAUTHORIZED', { message: 'Authentication required' })
+  }
+
+  return next({
+    context: {
+      ...context,
+      auth: {
+        userId: session.user.id,
+        email: session.user.email,
+        tenantId: session.session.activeOrganizationId ?? '',
+      },
+    },
+  })
+})
+```
+
+### Context Types
+
+```typescript
+// Public endpoint
+async operation(input: Input, context: ORPCContext) { ... }
+
+// Protected endpoint
+@Middleware(authMiddleware)
+async operation(input: Input, context: AuthedORPCContext) {
+  const { userId, tenantId, email } = context.auth  // guaranteed non-null
+}
+```
+
+### Better Auth Native Endpoints
+
+Mounted alongside oRPC in `apps/api/src/index.ts`:
+
+```typescript
+app.on(['POST', 'GET'], '/api/auth/**', (c) => auth.handler(c.req.raw))
+```
+
+- `GET /api/auth/session` — session check
+- `POST /api/auth/sign-out` — sign out
+- `GET /api/auth/organization/list` — list orgs
+
+See `docs/auth.md` for full auth documentation.
+
+## oRPC Client Integration (Frontend)
+
+### Client Stack (`apps/web/lib/orpc/`)
 
 ```
 orpc.url.ts    -> RPC_URL = new URL("/rpc", NEXT_PUBLIC_API_URL ?? "http://localhost:3000")
-orpc.link.ts   -> RPCLink with auth headers (Bearer token + x-tenant-id from localStorage)
-orpc.client.ts -> orpcClient = createORPCClient(link) (client-side)
+orpc.link.ts   -> RPCLink with auth headers (Bearer token + x-tenant-id from Zustand)
+orpc.client.ts -> orpcClient = createORPCClient(link)
 orpc.server.ts -> globalThis.$orpcClient (server-side, "server-only")
 orpc.d.ts      -> global type: ContractRouterClient<typeof contract>
 ```
 
-### Usage Pattern in Pages
+### Usage
 
 ```typescript
-// Dynamic import to avoid bundling issues
+"use client";
 const { orpcClient } = await import("@/lib/orpc/orpc.client");
 const result = await orpcClient.{feature}.{operation}(input);
 // result is fully typed from contract output schema
 ```
 
-### Auth Headers (Automatic)
+**Rule: Only use `orpcClient` to call the API. Never use fetch/axios directly.**
 
-orpc.link.ts reads token from Zustand auth store (localStorage):
+## API Architecture
 
-- `Authorization: Bearer {session.token}`
-- `x-tenant-id: {session.activeOrganizationId}`
-
-### Adding New API Call to Frontend
-
-1. No need for fetch/axios wrapper - use `orpcClient.{feature}.{operation}()` only
-2. Types come automatically from contract (input/output schemas)
-3. Error handling: try/catch, error has message from ORPCError
-
-## Architecture - API (Contract-First OOP)
-
-4 layers: contracts -> schemas -> features (controller/service/repository/serializer)
-
-### Bootstrap (apps/api/src/index.ts)
+### Bootstrap (`apps/api/src/index.ts`)
 
 ```typescript
 import 'reflect-metadata'
-import { createApp, corsPlugin, loggerPlugin, openapiPlugin } from '@outscope/orpc-hono'
+import { createApp, corsPlugin, loggerPlugin, openapiPlugin } from '@outscope/nova'
+import { contract } from '@workspace/contracts'
 
 const app = await createApp<ORPCContext>({
   contract,
   producer: pub,
-  controllers: 'src/features/**/*.controller.ts',
+  controllers: 'src/modules/**/*.controller.ts',  // auto-loaded
   createContext,
   apiPrefix: '/api',
   rpcPrefix: '/rpc',
   plugins: [corsPlugin(...), loggerPlugin(...), openapiPlugin(...)],
 })
+
+// Better Auth native endpoints
+app.on(['POST', 'GET'], '/api/auth/**', (c) => auth.handler(c.req.raw))
 ```
 
 ### Decorator Pattern
 
 ```typescript
-import { Controller, Implement, Middleware, CatchErrors, extractBearerToken } from '@outscope/orpc-hono'
+import { Controller, Implement, Middleware, CatchErrors } from '@outscope/nova'
 
 @Controller()
 export class FeatureController {
@@ -149,185 +208,128 @@ export class FeatureController {
 }
 ```
 
-### Context System
+### Module Structure
 
-```typescript
-// libs/orpc/context.ts
-interface ORPCContext extends BaseORPCContext {
-  auth?: { userId: string; tenantId: string; email: string }
-}
-type AuthedORPCContext = ORPCContext & { auth: { userId: string; tenantId: string; email: string } }
-
-// libs/orpc/orpc.ts
-export const pub = implement(contract).$context<ORPCContext>()
-export const authMiddleware = async ({ next, context }) => { ... }
+```
+apps/api/src/modules/{feature}/
+├── {feature}.controller.ts   # @Controller + @Implement decorators
+├── {feature}.service.ts      # Business logic
+├── {feature}.repository.ts   # Prisma data access
+└── {feature}.serializer.ts   # DB model → API output
 ```
 
-### API Endpoints
+## Frontend Architecture
 
-- `/` - Swagger UI
-- `/api/*` - REST endpoints
-- `/rpc/*` - oRPC endpoints (frontend uses this)
+### Key Rules
 
-## Architecture - Frontend (Next.js App Router)
+- **Use `orpcClient` as the only way to call the API**
+- Auth: `useAuthStore` (Zustand persist), `ProtectedRoute`
+- i18n: `useTranslations()`, locales en + th
+- UI: `@workspace/ui/components/*` (shadcn/ui)
 
 ### Page Pattern
 
 ```typescript
 "use client";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-// ... shadcn/ui imports from @workspace/ui/components/*
 
 export default function FeaturePage() {
   const t = useTranslations("feature");
-  // Dynamic import for orpcClient
-  const { orpcClient } = await import("@/lib/orpc/orpc.client");
-  // ...
+  const [loading, setLoading] = useState(false);
+
+  const handleAction = async () => {
+    setLoading(true);
+    try {
+      const { orpcClient } = await import("@/lib/orpc/orpc.client");
+      const result = await orpcClient.feature.action(input);
+    } catch (err: any) {
+      // handle error
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (/* JSX */);
 }
 ```
 
-### Key Rules
-
-- **Use orpcClient as the only way to call API (never use fetch/axios directly)**
-- Auth: useAuthStore (Zustand persist), ProtectedRoute
-- i18n: useTranslations(), locales en + th
-- UI: `@workspace/ui/components/*` (shadcn/ui)
-
-### Sidebar Menu (apps/web/components/app-layout/constants/menu.ts)
+### Sidebar Menu (`apps/web/components/app-layout/constants/menu.ts`)
 
 ```typescript
 export const SIDEBAR_MENU_ITEMS: MenuItem[] = [
-  { id: "home", fallbackLabel: "Home", i18nToken: "layout.sidebar.home", icon: "home", href: "/" },
   { id: "feature", fallbackLabel: "Feature", i18nToken: "menu.feature", icon: "iconName", href: "/feature" },
 ];
 ```
 
-## How to Add Features (End-to-End)
-
-### Step 1: Database
-
-Edit `apps/api/prisma/schema.prisma`, then `pnpm db:migrate` + `pnpm db:generate`
-
-### Step 2: API (contract-first)
-
-1. Schema: `apps/api/src/schemas/{feature}/index.ts` (Zod schemas + types)
-2. Contract: `apps/api/src/contracts/{feature}.ts` (oc.route + schemas)
-3. Register: add to `apps/api/src/contracts/index.ts`
-4. Feature dir: `apps/api/src/features/{feature}/`
-   - `{feature}.repository.ts` (Prisma queries)
-   - `{feature}.service.ts` (business logic)
-   - `{feature}.serializer.ts` (DB model -> API output)
-   - `{feature}.controller.ts` (decorators, auto-loaded)
-
-### Step 3: Frontend
-
-- orpcClient is available immediately: `orpcClient.{feature}.{operation}()`
-- Create pages in `apps/web/app/{feature}/`
-- Add i18n keys in `apps/web/i18n/messages/{en,th}.json`
-- Add sidebar menu item in `apps/web/components/app-layout/constants/menu.ts`
-
 ## Path Aliases
 
-### API (apps/api/tsconfig.json)
+### API (`apps/api/tsconfig.json`)
 
-- `@contracts/*` -> `src/contracts/*`
-- `@schemas/*` -> `src/schemas/*`
-- `@libs/*` -> `src/libs/*`
-- `@generated/*` -> `src/generated/*`
+| Alias | Resolves to |
+|-------|------------|
+| `@contracts/*` | `packages/contracts/src/*` |
+| `@schemas/*` | `packages/schemas/src/*` |
+| `@libs/*` | `apps/api/src/libs/*` |
+| `@generated/*` | `apps/api/src/generated/*` |
+| `@modules/*` | `apps/api/src/modules/*` |
 
-### Web (apps/web/tsconfig.json)
+### Web (`apps/web/tsconfig.json`)
 
-- `@/*` -> `./*`
-- `@workspace/ui/*` -> `../../packages/ui/src/*`
-- `api/contracts` -> `../api/src/contracts/index.ts`
-- `api/schemas/*` -> `../api/src/schemas/*/index.ts`
-- `@schemas/*` -> `../api/src/schemas/*`
-- `@generated/*` -> `../api/src/generated/*`
+| Alias | Resolves to |
+|-------|------------|
+| `@/*` | `apps/web/*` |
+| `@workspace/ui/*` | `packages/ui/src/*` |
+| `@workspace/contracts` | `packages/contracts/src/index.ts` |
+| `@workspace/schemas/*` | `packages/schemas/src/*` |
+| `@schemas/*` | `packages/schemas/src/*` |
+
+## Naming Conventions
+
+- Files: `kebab-case`
+- Classes: `PascalCase`
+- DB tables: `snake_case` (via `@@map`), fields: `camelCase`
+- Contract routes: `kebab-case` paths, `camelCase` TS names
+- Module files: `{feature}.{layer}.ts`
+- Packages: `@workspace/{name}`
+- Primary keys: UUID (`crypto.randomUUID()`)
+- Timestamps: `createdAt @default(now())`, `updatedAt @updatedAt`
+
+See `docs/naming-conventions.md` for the complete reference.
 
 ## Environment Variables
 
-### API (.env)
+### API (`.env`)
 
-- `DATABASE_URL` - SQLite connection string (default: file:./dev.db)
-- `PORT` - Server port (default: 3000)
-- `CORS_ORIGINS` - Allowed origins (default: http://localhost:3001,http://localhost:3000)
-- `BETTER_AUTH_SECRET` - Auth secret key
-- `BETTER_AUTH_URL` - Auth base URL
+- `DATABASE_URL` — SQLite connection string (default: `file:./dev.db`)
+- `PORT` — Server port (default: 3000)
+- `CORS_ORIGINS` — Allowed origins (default: `http://localhost:3001,http://localhost:3000`)
+- `BETTER_AUTH_SECRET` — Auth secret key
+- `BETTER_AUTH_URL` — Auth base URL (e.g. `http://localhost:3000`)
 
-### Web (.env)
+### Web (`.env`)
 
-- `NEXT_PUBLIC_API_URL` - API URL (default: http://localhost:3000)
-
-## Conventions
-
-- File naming: kebab-case
-- DB tables: snake_case (@@map), fields: camelCase
-- Exports: barrel pattern (index.ts)
-- Error handling: @CatchErrors() decorator, ORPCError
-- **Frontend API calls: orpcClient only (never fetch/axios)**
-- Primary keys: UUID (crypto.randomUUID())
-- Timestamps: createdAt (default now()), updatedAt (@updatedAt)
-
-## Ruflo MCP Integration
-
-### Setup (Automatic)
-
-Ruflo is initialized during project creation via `ruflo init --start-all --force`.
-MCP server starts automatically when Claude Code opens via `.mcp.json`. 215+ tools available.
-
-To re-initialize or override config: `npx ruflo@latest init --start-all --force`
-
-### Hive Mind (Queen-Worker Multi-Agent)
-
-Ruflo Hive Mind provides queen-led hierarchical orchestration with specialized workers.
-
-**Initialize via MCP:**
-
-- Swarm: `mcp__ruflo__swarm_init({ topology: "hierarchical", maxAgents: 8, strategy: "specialized" })`
-- Spawn: `mcp__ruflo__agent_spawn({ type: "architect|coder|tester|analyst|reviewer", name, capabilities })`
-
-**Topology selection:**
-
-| Topology | Agents | Use Case |
-|----------|--------|----------|
-| `hierarchical` | 6-8 | Standard features, structured dev (recommended) |
-| `hierarchical-mesh` | 10-15 | Complex cross-cutting features |
-| `mesh` | 4-6 | Collaborative exploration, peer review |
-| `ring` | 3-5 | Sequential pipelines (schema → API → frontend) |
-
-Strategy: `"specialized"` for role-based agents, `"balanced"` for general tasks.
-
-### Memory (Collective, Cross-Session)
-
-- Store: `mcp__ruflo__memory_store({ key, value, namespace })`
-- Search: `mcp__ruflo__memory_search({ query, limit })`
-- Retrieve: `mcp__ruflo__memory_retrieve({ key, namespace })`
-
-### Token Optimization (~30-50% savings)
-
-- ReasoningBank: cache successful reasoning patterns (-32%)
-- Agent Booster (WASM): skip LLM for simple code transforms (-15%)
-- Pattern caching: reuse from collective memory (-10%)
-- Optimal batching: group operations in single messages (-20%)
-
-### Override / Reset Config
-
-```bash
-npx ruflo@latest init --start-all --force    # Full re-init (overwrites existing)
-npx ruflo@latest init --enhanced --force      # Enhanced features
-npx ruflo@latest doctor --fix                 # Fix issues without re-init
-```
+- `NEXT_PUBLIC_API_URL` — API URL (default: `http://localhost:3000`)
 
 ## Agent Teams (Recommended Compositions)
 
 ### Full Feature Team
 
 1. `database` agent: Prisma schema + migration
-2. `api-feature` agent: contracts, schemas, controller/service/repository
+2. `api-feature` agent: packages/schemas, packages/contracts, modules implementation
 3. `frontend-feature` agent: Next.js pages + orpcClient calls
 4. `test-runner` agent: verify compilation + lint
 
 ### Quality Assurance Team
 
-1. `code-reviewer` agent: full review
+1. `code-reviewer` agent: architecture + security review
 2. `test-runner` agent: build verification
+
+## Documentation
+
+| File | Contents |
+|------|---------|
+| `docs/architecture.md` | Modular monolith overview, layer diagram, scaling path |
+| `docs/auth.md` | Better Auth + oRPC integration, session flow, middleware |
+| `docs/adding-features.md` | Step-by-step feature guide with code templates |
+| `docs/naming-conventions.md` | Complete naming reference |

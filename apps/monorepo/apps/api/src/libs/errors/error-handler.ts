@@ -1,5 +1,5 @@
 import { ORPCError } from '@orpc/server'
-import { createLogger } from '@outscope/orpc-hono'
+import { createLogger } from '@outscope/nova'
 
 const logger = createLogger({ level: 'debug', pretty: true })
 

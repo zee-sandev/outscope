@@ -133,6 +133,334 @@ importers:
         specifier: ^5.9.2
         version: 5.9.2
 
+  apps/monorepo-lite:
+    devDependencies:
+      '@workspace/eslint-config':
+        specifier: workspace:*
+        version: link:../monorepo/packages/eslint-config
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../monorepo/packages/typescript-config
+      husky:
+        specifier: ^9.0.0
+        version: 9.1.7
+      lint-staged:
+        specifier: ^16.2.3
+        version: 16.2.7
+      prettier:
+        specifier: ^3.6.2
+        version: 3.7.4
+      turbo:
+        specifier: ^2.5.5
+        version: 2.7.4
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
+
+  apps/monorepo-lite/apps/api:
+    dependencies:
+      '@hono/node-server':
+        specifier: ^1.19.5
+        version: 1.19.5(hono@4.9.10)
+      '@hono/swagger-ui':
+        specifier: ^0.5.2
+        version: 0.5.2(hono@4.9.10)
+      '@orpc/client':
+        specifier: ^1.9.3
+        version: 1.9.3
+      '@orpc/contract':
+        specifier: ^1.9.3
+        version: 1.9.3
+      '@orpc/openapi':
+        specifier: ^1.9.3
+        version: 1.9.3
+      '@orpc/server':
+        specifier: ^1.9.3
+        version: 1.9.3
+      '@orpc/zod':
+        specifier: ^1.9.3
+        version: 1.9.3(@orpc/contract@1.9.3)(@orpc/server@1.9.3)(zod@4.3.5)
+      '@outscope/orpc-hono-lite':
+        specifier: workspace:*
+        version: link:../../../../packages/orpc-hono-lite
+      '@prisma/client':
+        specifier: ^6.17.0
+        version: 6.17.0(prisma@6.17.0(typescript@5.9.2))(typescript@5.9.2)
+      '@workspace/contracts':
+        specifier: workspace:*
+        version: link:../../../monorepo/packages/contracts
+      '@workspace/schemas':
+        specifier: workspace:*
+        version: link:../../../monorepo/packages/schemas
+      bcryptjs:
+        specifier: ^3.0.2
+        version: 3.0.3
+      better-auth:
+        specifier: ^1.3.27
+        version: 1.4.12(@prisma/client@6.17.0(prisma@6.17.0(typescript@5.9.2))(typescript@5.9.2))(next@15.5.9(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(prisma@6.17.0(typescript@5.9.2))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      hono:
+        specifier: ^4.9.10
+        version: 4.9.10
+      hono-pino:
+        specifier: ^0.10.3
+        version: 0.10.3(hono@4.9.10)(pino@10.0.0)
+      jsonwebtoken:
+        specifier: ^9.0.2
+        version: 9.0.3
+      pino:
+        specifier: ^10.0.0
+        version: 10.0.0
+      pino-pretty:
+        specifier: ^13.1.1
+        version: 13.1.1
+      prisma:
+        specifier: ^6.17.0
+        version: 6.17.0(typescript@5.9.2)
+      zod:
+        specifier: ^4.0.0
+        version: 4.3.5
+    devDependencies:
+      '@types/jsonwebtoken':
+        specifier: ^9.0.10
+        version: 9.0.10
+      '@types/node':
+        specifier: ^20.11.17
+        version: 20.19.19
+      '@workspace/eslint-config':
+        specifier: workspace:*
+        version: link:../../../monorepo/packages/eslint-config
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../../../monorepo/packages/typescript-config
+      eslint:
+        specifier: ^9.32.0
+        version: 9.34.0(jiti@2.6.1)
+      tsx:
+        specifier: ^4.7.1
+        version: 4.20.6
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
+
+  apps/monorepo-lite/apps/web:
+    dependencies:
+      '@orpc/client':
+        specifier: ^1.9.3
+        version: 1.9.3
+      '@orpc/contract':
+        specifier: ^1.9.3
+        version: 1.9.3
+      '@workspace/ui':
+        specifier: workspace:*
+        version: link:../../../monorepo/packages/ui
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@19.2.3)
+      luxon:
+        specifier: ^3.7.2
+        version: 3.7.2
+      next:
+        specifier: ^15.4.5
+        version: 15.5.9(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      next-intl:
+        specifier: ^4.3.9
+        version: 4.7.0(next@15.5.9(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.2)
+      next-themes:
+        specifier: ^0.4.6
+        version: 0.4.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react:
+        specifier: ^19.1.1
+        version: 19.2.3
+      react-dom:
+        specifier: ^19.1.1
+        version: 19.2.3(react@19.2.3)
+      zustand:
+        specifier: ^5.0.8
+        version: 5.0.10(@types/react@19.2.8)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.9
+        version: 20.19.19
+      '@types/react':
+        specifier: ^19.1.9
+        version: 19.2.8
+      '@types/react-dom':
+        specifier: ^19.1.7
+        version: 19.2.3(@types/react@19.2.8)
+      '@workspace/contracts':
+        specifier: workspace:*
+        version: link:../../../monorepo/packages/contracts
+      '@workspace/eslint-config':
+        specifier: workspace:^
+        version: link:../../../monorepo/packages/eslint-config
+      '@workspace/schemas':
+        specifier: workspace:*
+        version: link:../../../monorepo/packages/schemas
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../../../monorepo/packages/typescript-config
+      eslint:
+        specifier: ^9.32.0
+        version: 9.34.0(jiti@2.6.1)
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
+
+  apps/monorepo-lite/packages/contracts:
+    dependencies:
+      '@orpc/contract':
+        specifier: ^1.9.3
+        version: 1.9.3
+      '@workspace/schemas':
+        specifier: workspace:*
+        version: link:../../../monorepo/packages/schemas
+    devDependencies:
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../../../monorepo/packages/typescript-config
+
+  apps/monorepo-lite/packages/eslint-config:
+    devDependencies:
+      '@eslint/js':
+        specifier: ^9.32.0
+        version: 9.34.0
+      '@next/eslint-plugin-next':
+        specifier: ^15.4.5
+        version: 15.5.0
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.39.0
+        version: 8.40.0(@typescript-eslint/parser@8.40.0(eslint@9.34.0(jiti@2.6.1))(typescript@5.9.2))(eslint@9.34.0(jiti@2.6.1))(typescript@5.9.2)
+      '@typescript-eslint/parser':
+        specifier: ^8.39.0
+        version: 8.40.0(eslint@9.34.0(jiti@2.6.1))(typescript@5.9.2)
+      eslint:
+        specifier: ^9.32.0
+        version: 9.34.0(jiti@2.6.1)
+      eslint-config-prettier:
+        specifier: ^9.1.2
+        version: 9.1.2(eslint@9.34.0(jiti@2.6.1))
+      eslint-plugin-import:
+        specifier: ^2.32.0
+        version: 2.32.0(@typescript-eslint/parser@8.40.0(eslint@9.34.0(jiti@2.6.1))(typescript@5.9.2))(eslint@9.34.0(jiti@2.6.1))
+      eslint-plugin-only-warn:
+        specifier: ^1.1.0
+        version: 1.1.0
+      eslint-plugin-react:
+        specifier: ^7.37.5
+        version: 7.37.5(eslint@9.34.0(jiti@2.6.1))
+      eslint-plugin-react-hooks:
+        specifier: ^5.2.0
+        version: 5.2.0(eslint@9.34.0(jiti@2.6.1))
+      eslint-plugin-turbo:
+        specifier: ^2.5.5
+        version: 2.7.4(eslint@9.34.0(jiti@2.6.1))(turbo@2.7.4)
+      globals:
+        specifier: ^15.15.0
+        version: 15.15.0
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
+      typescript-eslint:
+        specifier: ^8.39.0
+        version: 8.40.0(eslint@9.34.0(jiti@2.6.1))(typescript@5.9.2)
+
+  apps/monorepo-lite/packages/schemas:
+    dependencies:
+      zod:
+        specifier: ^4.0.0
+        version: 4.3.5
+    devDependencies:
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../../../monorepo/packages/typescript-config
+
+  apps/monorepo-lite/packages/typescript-config: {}
+
+  apps/monorepo-lite/packages/ui:
+    dependencies:
+      '@radix-ui/react-alert-dialog':
+        specifier: ^1.1.15
+        version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-avatar':
+        specifier: ^1.1.10
+        version: 1.1.11(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-dialog':
+        specifier: ^1.1.15
+        version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-label':
+        specifier: ^2.1.1
+        version: 2.1.8(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-select':
+        specifier: ^2.1.4
+        version: 2.2.6(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-separator':
+        specifier: ^1.1.7
+        version: 1.1.8(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-slot':
+        specifier: ^1.2.3
+        version: 1.2.4(@types/react@19.2.8)(react@19.2.3)
+      '@radix-ui/react-tooltip':
+        specifier: ^1.2.8
+        version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@19.2.3)
+      next-themes:
+        specifier: ^0.4.6
+        version: 0.4.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react:
+        specifier: ^19.1.1
+        version: 19.2.3
+      react-dom:
+        specifier: ^19.1.1
+        version: 19.2.3(react@19.2.3)
+      tailwind-merge:
+        specifier: ^3.3.1
+        version: 3.4.0
+      tw-animate-css:
+        specifier: ^1.3.6
+        version: 1.4.0
+      zod:
+        specifier: ^4.0.0
+        version: 4.3.5
+    devDependencies:
+      '@tailwindcss/postcss':
+        specifier: ^4.1.11
+        version: 4.1.18
+      '@turbo/gen':
+        specifier: ^2.5.5
+        version: 2.7.4(@swc/core@1.15.8)(@types/node@20.19.19)(typescript@5.9.2)
+      '@types/node':
+        specifier: ^20.19.9
+        version: 20.19.19
+      '@types/react':
+        specifier: ^19.1.9
+        version: 19.2.8
+      '@types/react-dom':
+        specifier: ^19.1.7
+        version: 19.2.3(@types/react@19.2.8)
+      '@workspace/eslint-config':
+        specifier: workspace:*
+        version: link:../../../monorepo/packages/eslint-config
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../../../monorepo/packages/typescript-config
+      eslint:
+        specifier: ^9.32.0
+        version: 9.34.0(jiti@2.6.1)
+      tailwindcss:
+        specifier: ^4.1.11
+        version: 4.1.18
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
+
   apps/monorepo/apps/api:
     dependencies:
       '@hono/node-server':
@@ -162,6 +490,12 @@ importers:
       '@prisma/client':
         specifier: ^6.17.0
         version: 6.17.0(prisma@6.17.0(typescript@5.9.2))(typescript@5.9.2)
+      '@workspace/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@workspace/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.3
@@ -263,21 +597,37 @@ importers:
       '@types/react-dom':
         specifier: ^19.1.7
         version: 19.2.3(@types/react@19.2.8)
+      '@workspace/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@workspace/eslint-config':
         specifier: workspace:^
         version: link:../../packages/eslint-config
+      '@workspace/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
       '@workspace/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
-      api:
-        specifier: workspace:*
-        version: link:../api
       eslint:
         specifier: ^9.32.0
         version: 9.34.0(jiti@2.6.1)
       typescript:
         specifier: ^5.9.2
         version: 5.9.2
+
+  apps/monorepo/packages/contracts:
+    dependencies:
+      '@orpc/contract':
+        specifier: ^1.9.3
+        version: 1.9.3
+      '@workspace/schemas':
+        specifier: workspace:*
+        version: link:../schemas
+    devDependencies:
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
 
   apps/monorepo/packages/eslint-config:
     devDependencies:
@@ -323,6 +673,16 @@ importers:
       typescript-eslint:
         specifier: ^8.39.0
         version: 8.40.0(eslint@9.34.0(jiti@2.6.1))(typescript@5.9.2)
+
+  apps/monorepo/packages/schemas:
+    dependencies:
+      zod:
+        specifier: ^4.0.0
+        version: 4.3.5
+    devDependencies:
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
 
   apps/monorepo/packages/typescript-config: {}
 
@@ -502,6 +862,46 @@ importers:
       glob:
         specifier: ^11.0.0
         version: 11.0.3
+      pino:
+        specifier: ^10.0.0
+        version: 10.0.0
+      pino-pretty:
+        specifier: ^13.0.0
+        version: 13.1.1
+    devDependencies:
+      '@orpc/contract':
+        specifier: ^1.9.3
+        version: 1.9.3
+      '@orpc/openapi':
+        specifier: ^1.9.3
+        version: 1.9.3
+      '@orpc/server':
+        specifier: ^1.9.3
+        version: 1.9.3
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.6
+      hono:
+        specifier: ^4.9.10
+        version: 4.9.10
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
+      zod:
+        specifier: ^4.0.0
+        version: 4.3.5
+
+  packages/orpc-hono-lite:
+    optionalDependencies:
+      '@hono/node-server':
+        specifier: ^1.19.0
+        version: 1.19.5(hono@4.9.10)
+      '@hono/swagger-ui':
+        specifier: ^0.5.0
+        version: 0.5.2(hono@4.9.10)
+      '@orpc/zod':
+        specifier: ^1.9.0
+        version: 1.9.3(@orpc/contract@1.9.3)(@orpc/server@1.9.3)(zod@4.3.5)
       pino:
         specifier: ^10.0.0
         version: 10.0.0
@@ -3195,6 +3595,7 @@ packages:
   glob@11.0.3:
     resolution: {integrity: sha512-2Nim7dha1KVkaiF4q6Dj+ngPPMdfvLJEOpZk/jKiUAkqKebpGAWQXAq9z1xu9HKu5lWfqw/FASuccEjyznjPaA==}
     engines: {node: 20 || >=22}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   globals@14.0.0:

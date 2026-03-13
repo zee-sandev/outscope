@@ -4,7 +4,7 @@ import {
   corsPlugin,
   loggerPlugin,
   openapiPlugin,
-} from '@outscope/orpc-hono'
+} from '@outscope/nova'
 import { contract } from './contracts'
 import { createContext, type ORPCContext } from 'libs/orpc/context'
 import { pub } from 'libs/orpc/orpc'
@@ -29,9 +29,9 @@ async function bootstrap() {
         pretty: true,
       }),
       openapiPlugin({
-        title: '@outscope/orpc-hono Example API',
+        title: '@outscope/nova Example API',
         version: '1.0.0',
-        description: 'Example API demonstrating @outscope/orpc-hono with OOP decorators',
+        description: 'Example API demonstrating @outscope/nova with OOP decorators',
       }),
     ],
   })

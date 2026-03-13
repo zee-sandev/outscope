@@ -1,0 +1,57 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install)",
+      "Bash(pnpm dev)",
+      "Bash(pnpm build)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm lint:fix)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm test)",
+      "Bash(pnpm format)",
+      "Bash(pnpm db:generate)",
+      "Bash(pnpm db:push)",
+      "Bash(pnpm db:migrate)",
+      "Bash(pnpm db:studio)",
+      "Bash(pnpm --filter *)",
+      "Bash(pnpm dlx shadcn@latest *)",
+      "Bash(pnpm exec *)",
+      "Bash(turbo *)",
+      "Bash(npx prisma *)",
+      "Bash(npx ruflo *)",
+      "Bash(tsx *)",
+      "Bash(tsc *)",
+      "Bash(curl *)",
+      "Bash(pkill *)",
+      "Bash(lsof *)",
+      "Bash(tree *)",
+      "Bash(ls *)",
+      "Bash(git *)"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "prettier --write \"$CLAUDE_FILE_PATH\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "case \"$CLAUDE_FILE_PATH\" in *.env|*.env.*) echo 'BLOCKED: Use .env.example instead' && exit 1;; */prisma/migrations/*) echo 'BLOCKED: Use pnpm db:migrate' && exit 1;; */src/generated/*) echo 'BLOCKED: Use pnpm db:generate' && exit 1;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}

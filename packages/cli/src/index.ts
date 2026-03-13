@@ -13,7 +13,7 @@ const program = new Command()
 
 program
   .name('outscope')
-  .description('CLI tool for scaffolding @outscope/orpc-hono projects')
+  .description('CLI tool for scaffolding @outscope/nova projects')
   .version(pkg.version)
 
 // Create command

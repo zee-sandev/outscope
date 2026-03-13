@@ -1,0 +1,99 @@
+{
+  "name": "@outscope/nova-fn",
+  "version": "0.1.0",
+  "description": "Lightweight functional oRPC integration for Hono - Pure functions, zero decorators, minimal overhead",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./plugins": {
+      "types": "./dist/plugins/index.d.ts",
+      "import": "./dist/plugins/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "link:dev": "pnpm build && pnpm link --global",
+    "check-types": "tsc --noEmit",
+    "test": "echo \"No tests yet\"",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "pnpm clean && pnpm build"
+  },
+  "keywords": [
+    "orpc",
+    "hono",
+    "typescript",
+    "api",
+    "rpc",
+    "functional",
+    "type-safe",
+    "rest",
+    "openapi",
+    "middleware",
+    "server",
+    "framework",
+    "plugin",
+    "edge",
+    "cloudflare-workers",
+    "lightweight"
+  ],
+  "peerDependencies": {
+    "hono": "^4.0.0",
+    "@orpc/contract": "^1.9.0",
+    "@orpc/openapi": "^1.9.0",
+    "@orpc/server": "^1.9.0",
+    "zod": "^3.0.0 || ^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@orpc/openapi": {
+      "optional": true
+    }
+  },
+  "optionalDependencies": {
+    "pino": "^10.0.0",
+    "pino-pretty": "^13.0.0",
+    "@hono/swagger-ui": "^0.5.0",
+    "@hono/node-server": "^1.19.0",
+    "@orpc/zod": "^1.9.0"
+  },
+  "devDependencies": {
+    "@orpc/contract": "^1.9.3",
+    "@orpc/openapi": "^1.9.3",
+    "@orpc/server": "^1.9.3",
+    "@orpc/zod": "^1.9.3",
+    "@hono/swagger-ui": "^0.5.0",
+    "@hono/node-server": "^1.19.0",
+    "@types/node": "^22.0.0",
+    "hono": "^4.9.10",
+    "pino": "^10.0.0",
+    "pino-pretty": "^13.0.0",
+    "typescript": "^5.9.2",
+    "zod": "^4.0.0"
+  },
+  "author": "Zee Sandev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zee-sandev/horn.git",
+    "directory": "packages/nova-fn"
+  },
+  "homepage": "https://github.com/zee-sandev/horn#readme",
+  "bugs": {
+    "url": "https://github.com/zee-sandev/horn/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

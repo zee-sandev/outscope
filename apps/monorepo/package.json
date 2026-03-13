@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "setup:orpc": "(cd ../../packages/nova && pnpm build) && pnpm install --no-frozen-lockfile",
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
@@ -24,6 +25,11 @@
     "prettier": "^3.6.2",
     "turbo": "^2.5.5",
     "typescript": "^5.9.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "@outscope/nova": "link:../../packages/nova"
+    }
   },
   "packageManager": "pnpm@10.4.1",
   "engines": {

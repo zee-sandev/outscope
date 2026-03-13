@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "build:packages": "pnpm --filter @outscope/orpc-hono build && pnpm --filter @outscope/cli build",
+    "build:packages": "pnpm --filter @outscope/nova build && pnpm --filter @outscope/nova-fn build && pnpm --filter @outscope/cli build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",

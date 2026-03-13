@@ -1,7 +1,7 @@
 {
   "name": "@outscope/cli",
   "version": "0.2.3",
-  "description": "CLI tool for scaffolding @outscope/orpc-hono projects",
+  "description": "CLI tool for scaffolding @outscope/nova projects",
   "type": "module",
   "bin": {
     "outscope": "./bin/outscope.js",

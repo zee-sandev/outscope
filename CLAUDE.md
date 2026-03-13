@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a **pnpm monorepo** for the `@horn` toolkit, focused on building type-safe development tools and frameworks. The primary package is `@horn/orpc-hono`, which provides oRPC integration for the Hono framework using an OOP pattern with decorators.
 
 **Key Technologies:**
+
 - **Build System:** Turborepo (via `turbo`)
 - **Package Manager:** pnpm (required - version 9.0.0+)
 - **Runtime:** Node.js 18+ (22+ recommended)
@@ -95,6 +96,7 @@ The main package provides a decorator-based OOP pattern for building type-safe A
 3. **Registration**: Apply to Hono app using `ORPCHono` instance and `registerController()`
 
 **Required Dependencies:**
+
 - `hono` - Web framework
 - `@orpc/contract` - Contract definitions
 - `@orpc/server` - Server implementation
@@ -118,6 +120,7 @@ src/
 ```
 
 **Pattern:**
+
 - Contracts use `oc.route()` to define HTTP method and path
 - Contracts are grouped and exported from `contracts/index.ts`
 - Controllers use `@Controller()` and `@Implement(contract)` decorators
@@ -132,7 +135,7 @@ Projects use **ESNext modules** with **bundler resolution**:
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "experimentalDecorators": true,  // Required for @horn/orpc-hono
+    "experimentalDecorators": true, // Required for @horn/orpc-hono
     "strict": true
   }
 }
@@ -143,6 +146,7 @@ Path aliases are configured per-app (e.g., `@contracts/*`, `@schemas/*`).
 ### Turborepo Pipeline
 
 Tasks defined in `turbo.json`:
+
 - **build**: Depends on upstream builds (`^build`), outputs to `.next/**`
 - **dev**: No caching, persistent task
 - **lint**: Depends on upstream lints
@@ -177,7 +181,9 @@ export class ResourceController {
   @Implement(getResource)
   get(input: GetResourceInput) {
     // Implementation
-    return { /* matches OutputSchema */ }
+    return {
+      /* matches OutputSchema */
+    }
   }
 }
 ```
@@ -222,7 +228,39 @@ export const pub = implement(contract).$context<ORPCContext>()
 ## Edge Runtime Support
 
 The `@horn/orpc-hono` package is designed for edge compatibility:
+
 - Cloudflare Workers
 - Vercel Edge Functions
 - Deno Deploy
 - Fastly Compute@Edge
+
+# Claude Project Context & Memory Guide
+
+## Interaction Strategy (10X Efficiency)
+
+- **Context Management:** Before performing deep analysis, ALWAYS use `repomix` to get a compressed XML map of the codebase. Focus on function signatures and exports.
+- **Memory Protocol:** After completing a significant task or architectural change, ALWAYS use `claude-mem` (or your active memory tool) to store the "Outcome" and "Lessons Learned".
+- **Token Budgeting:** Avoid reading full implementation of large files unless a specific bug is identified within them.
+
+## Memory Anchors (For claude-mem)
+
+Before ending a session, summarize:
+
+1. **State:** What was the last stable state?
+2. **Decisions:** Why did we choose this specific implementation?
+3. **Pending:** What is the exact next step for the user?
+
+## Automation Workflows
+
+- **On Startup:** Read this file to understand the project map.
+- **On Error:** Check `repomix` output to see if related files changed their signatures.
+- **On Finish:** Auto-update `CLAUDE.md` if the project structure or key conventions have evolved.
+
+## Constraints
+
+- Always use the `repomix` tool to understand the codebase structure before diving into deep file reads.
+- Focus on function signatures and file exports to save tokens.
+- Do not read implementation details of library files in `node_modules`.
+- NEVER include `node_modules`, `dist`, or `.git` in context searches.
+- NEVER rewrite entire files if only a few lines change (use line-based editing).
+- DO NOT hallucinate APIs; if unsure, use `repomix` to verify the existing codebase first.

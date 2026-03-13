@@ -1,0 +1,16 @@
+{
+  "output": {
+    "compress": true,
+    "removeComments": true,
+    "removeEmptyLines": true,
+    "topFilesLength": 20
+  },
+  "include": ["src/**/*"],
+  "ignore": {
+    "customPatterns": ["node_modules/**", "*.log", "dist/**", ".git/**"]
+  },
+  "format": "xml",
+  "security": {
+    "enableSecurityCheck": true
+  }
+}

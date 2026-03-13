@@ -26,7 +26,11 @@ export async function promptCreateProject(
       type: 'list',
       name: 'template',
       message: 'Select template:',
-      choices: [{ name: 'Beta (with Prisma example)', value: 'beta' }, { name: 'Monorepo (with Next.js 15, Hono, oRPC, Prisma, shadcn/ui)', value: 'monorepo' }],
+      choices: [
+        { name: 'Beta (with Prisma example)', value: 'beta' },
+        { name: 'Monorepo (with Next.js 15, Hono, oRPC, Prisma, shadcn/ui)', value: 'monorepo' },
+        { name: 'Monorepo Lite (functional, no decorators, edge-ready)', value: 'monorepo-lite' },
+      ],
       default: 'beta',
     },
     {

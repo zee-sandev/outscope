@@ -1,6 +1,6 @@
 # @outscope/cli
 
-CLI tool for scaffolding and managing @outscope/orpc-hono projects.
+CLI tool for scaffolding and managing @outscope/nova projects.
 
 ## Features
 

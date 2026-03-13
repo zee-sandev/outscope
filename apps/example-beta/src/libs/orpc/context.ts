@@ -1,5 +1,5 @@
 import type { Context as HonoContext } from 'hono'
-import type { BaseORPCContext } from '@outscope/orpc-hono'
+import type { BaseORPCContext } from '@outscope/nova'
 
 export type User = {
   id: string

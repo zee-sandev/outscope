@@ -7,7 +7,7 @@ import {
   CreatePlanetOutput,
 } from '../schemas/planet'
 import { oc } from '@orpc/contract'
-// Very lightweight contract shape tailored to @outscope/orpc-hono expectations
+// Very lightweight contract shape tailored to @outscope/nova expectations
 // Each procedure includes a route with method and path, plus optional meta
 
 export const list = oc

@@ -14,7 +14,8 @@
       "Bash(tree:*)",
       "Bash(ln:*)",
       "Bash(pnpm install:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npm view:*)"
     ],
     "deny": [],
     "ask": []

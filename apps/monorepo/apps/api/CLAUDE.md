@@ -2,7 +2,7 @@
 
 ## Overview
 
-Hono + oRPC backend using @outscope/orpc-hono OOP decorator framework.
+Hono + oRPC backend using @outscope/nova OOP decorator framework.
 Contract-first development with auto-controller loading.
 
 ## Commands
@@ -21,15 +21,11 @@ pnpm db:studio        # Open Prisma Studio GUI
 
 ### Contract-First with 4 Layers
 
+Contracts and schemas live in **shared packages** (`packages/contracts/`, `packages/schemas/`):
+
 ```
 src/
-├── contracts/          # 1. oRPC contracts (oc.route + schemas)
-│   ├── auth.ts
-│   └── index.ts        # Contract aggregation
-├── schemas/            # 2. Zod schemas (input/output types)
-│   └── auth/
-│       └── index.ts
-├── features/           # 3. Feature modules
+├── modules/            # Domain modules (renamed from features/)
 │   └── auth/
 │       ├── auth.controller.ts   # @Controller + @Implement decorators
 │       ├── auth.service.ts      # Business logic
@@ -37,13 +33,13 @@ src/
 │       └── auth.serializer.ts   # DB model -> API output
 ├── libs/
 │   ├── orpc/
-│   │   ├── context.ts   # ORPCContext, AuthedORPCContext, createContext
-│   │   └── orpc.ts      # pub instance, authMiddleware
+│   │   ├── context.ts   # ORPCContext (includes headers: Headers), AuthedORPCContext, createContext
+│   │   └── orpc.ts      # pub instance, authMiddleware (uses auth.api.getSession)
 │   ├── auth.ts          # Better Auth config
 │   └── prisma.ts        # Prisma client
 ├── generated/
 │   └── prisma/          # Generated Prisma client (DO NOT EDIT)
-└── index.ts             # Bootstrap: createApp()
+└── index.ts             # Bootstrap: createApp() + Better Auth handler
 ```
 
 ### Auto-Controller Loading
@@ -54,28 +50,31 @@ Controllers are discovered automatically via glob pattern:
 const app = await createApp<ORPCContext>({
   contract,
   producer: pub,
-  controllers: 'src/features/**/*.controller.ts',
+  controllers: 'src/modules/**/*.controller.ts',
   createContext,
   apiPrefix: '/api',
   rpcPrefix: '/rpc',
   plugins: [corsPlugin(...), loggerPlugin(...), openapiPlugin(...)],
 })
+
+// Better Auth native endpoints
+app.on(['POST', 'GET'], '/api/auth/**', (c) => auth.handler(c.req.raw))
 ```
 
 No manual registration needed - just export a `@Controller()` class.
 
 ## Decorator Reference
 
-All from `@outscope/orpc-hono`:
+All from `@outscope/nova`:
 
-| Decorator | Usage |
-|-----------|-------|
-| `@Controller()` | Class decorator, marks as auto-loadable controller |
-| `@Implement(contract.operation)` | Method decorator, binds to oRPC contract |
-| `@Middleware(authMiddleware)` | Method decorator, runs middleware before handler |
-| `@CatchErrors()` | Method decorator, wraps in error handler |
-| `extractBearerToken(context)` | Utility, gets Bearer token from request |
-| `createLogger(opts)` | Utility, creates Pino logger |
+| Decorator                        | Usage                                              |
+| -------------------------------- | -------------------------------------------------- |
+| `@Controller()`                  | Class decorator, marks as auto-loadable controller |
+| `@Implement(contract.operation)` | Method decorator, binds to oRPC contract           |
+| `@Middleware(authMiddleware)`    | Method decorator, runs middleware before handler   |
+| `@CatchErrors()`                 | Method decorator, wraps in error handler           |
+| `extractBearerToken(context)`    | Utility, gets Bearer token from request            |
+| `createLogger(opts)`             | Utility, creates Pino logger                       |
 
 ## Context System
 
@@ -95,9 +94,8 @@ export const pub = implement(contract).$context<ORPCContext>()
 
 ### authMiddleware
 
-- Reads `Authorization: Bearer {token}` header
-- Falls back to `better-auth.session_token` cookie
-- Validates session against database
+- Uses `auth.api.getSession({ headers: context.headers })` — official Better Auth pattern
+- `context.headers` is the raw request `Headers` object (set in `createContext`)
 - Adds `auth` to context: `{ userId, tenantId, email }`
 - Throws `ORPCError('UNAUTHORIZED')` on failure
 
@@ -125,10 +123,11 @@ User, Session, Account, Verification, Organization, Member, Invitation
 ## Path Aliases
 
 ```
-@contracts/* -> src/contracts/*
-@schemas/*   -> src/schemas/*
+@contracts/* -> packages/contracts/src/*
+@schemas/*   -> packages/schemas/src/*
 @libs/*      -> src/libs/*
 @generated/* -> src/generated/*
+@modules/*   -> src/modules/*
 ```
 
 ## API Endpoints
@@ -139,27 +138,27 @@ User, Session, Account, Verification, Organization, Member, Invitation
 
 ## Adding a New Feature
 
-1. **Schema**: `src/schemas/{feature}/index.ts`
+1. **Schema**: `packages/schemas/src/{feature}/index.ts` (shared package)
    - Define Zod schemas: `{Feature}InputSchema`, `{Feature}OutputSchema`
    - Export types: `type {Feature}Input = z.infer<typeof {Feature}InputSchema>`
 
-2. **Contract**: `src/contracts/{feature}.ts`
+2. **Contract**: `packages/contracts/src/{feature}.ts` (shared package)
    - Use `oc.route({ method, path, summary, tags })` + `.input()` + `.output()`
    - Group operations: `export const {feature} = { list, get, create, update, delete }`
 
-3. **Register**: Add to `src/contracts/index.ts`
+3. **Register**: Add to `packages/contracts/src/index.ts`
    - `export const contract = { auth, {feature} }`
 
-4. **Repository**: `src/features/{feature}/{feature}.repository.ts`
+4. **Repository**: `src/modules/{feature}/{feature}.repository.ts`
    - Prisma queries, return raw DB types
 
-5. **Service**: `src/features/{feature}/{feature}.service.ts`
+5. **Service**: `src/modules/{feature}/{feature}.service.ts`
    - Business logic, call repository, return typed results
 
-6. **Serializer**: `src/features/{feature}/{feature}.serializer.ts`
+6. **Serializer**: `src/modules/{feature}/{feature}.serializer.ts`
    - Transform DB models to API output types
 
-7. **Controller**: `src/features/{feature}/{feature}.controller.ts`
+7. **Controller**: `src/modules/{feature}/{feature}.controller.ts`
    - `@Controller()` class
    - `@CatchErrors()` + `@Implement(contract.op)` per method
    - `@Middleware(authMiddleware)` for protected endpoints
@@ -173,3 +172,34 @@ User, Session, Account, Verification, Organization, Member, Invitation
 - Not found: throw `ORPCError('NOT_FOUND', { message: '...' })`
 - Logger: `createLogger({ level: 'debug', pretty: true })` per service
 - Protected files: `src/generated/`, `prisma/migrations/` (never edit directly)
+
+# Claude Project Context & Memory Guide
+
+## Interaction Strategy (10X Efficiency)
+
+- **Context Management:** Before performing deep analysis, ALWAYS use `repomix` to get a compressed XML map of the codebase. Focus on function signatures and exports.
+- **Memory Protocol:** After completing a significant task or architectural change, ALWAYS use `claude-mem` (or your active memory tool) to store the "Outcome" and "Lessons Learned".
+- **Token Budgeting:** Avoid reading full implementation of large files unless a specific bug is identified within them.
+
+## Memory Anchors (For claude-mem)
+
+Before ending a session, summarize:
+
+1. **State:** What was the last stable state?
+2. **Decisions:** Why did we choose this specific implementation?
+3. **Pending:** What is the exact next step for the user?
+
+## Automation Workflows
+
+- **On Startup:** Read this file to understand the project map.
+- **On Error:** Check `repomix` output to see if related files changed their signatures.
+- **On Finish:** Auto-update `CLAUDE.md` if the project structure or key conventions have evolved.
+
+## Constraints
+
+- Always use the `repomix` tool to understand the codebase structure before diving into deep file reads.
+- Focus on function signatures and file exports to save tokens.
+- Do not read implementation details of library files in `node_modules`.
+- NEVER include `node_modules`, `dist`, or `.git` in context searches.
+- NEVER rewrite entire files if only a few lines change (use line-based editing).
+- DO NOT hallucinate APIs; if unsure, use `repomix` to verify the existing codebase first.

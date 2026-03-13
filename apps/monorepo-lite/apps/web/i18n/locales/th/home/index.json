@@ -1,0 +1,8 @@
+{
+  "title": "หน้าหลัก",
+  "welcome": "ยินดีต้อนรับสู่ Starter Template",
+  "description": "เทมเพลตแบบ Full-stack Monorepo พร้อม Next.js, Hono, oRPC และ Prisma",
+  "search": {
+    "placeholder": "ค้นหา"
+  }
+}

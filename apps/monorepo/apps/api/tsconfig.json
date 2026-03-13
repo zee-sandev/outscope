@@ -6,10 +6,12 @@
     "moduleResolution": "bundler",
     "baseUrl": "./src",
     "paths": {
-      "@contracts/*": ["contracts/*"],
-      "@schemas/*": ["schemas/*"],
+      "@contracts": ["../../../packages/contracts/src/index.ts"],
+      "@contracts/*": ["../../../packages/contracts/src/*"],
+      "@schemas/*": ["../../../packages/schemas/src/*"],
       "@libs/*": ["libs/*"],
-      "@generated/*": ["generated/*"]
+      "@generated/*": ["generated/*"],
+      "@modules/*": ["modules/*"]
     },
     "strict": true,
     "verbatimModuleSyntax": true,

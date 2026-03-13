@@ -104,6 +104,8 @@ async function transformAndWriteFile(
       pkg.name = context.projectName
       pkg.description = context.description
       pkg.version = '0.1.0'
+      // Remove dev-only overrides (local link: paths used within the monorepo)
+      delete pkg.pnpm
     }
 
     // Resolve workspace:* dependencies to published versions
@@ -150,6 +152,63 @@ async function transformAndWriteFile(
 
   await mkdir(dirname(targetPath), { recursive: true })
   await writeFile(targetPath, transformed, 'utf-8')
+}
+
+/**
+ * Recursively find all package.json files under a directory (skips node_modules etc.)
+ */
+export async function findPackageJsonFiles(dir: string): Promise<string[]> {
+  const results: string[] = []
+  const entries = await readdir(dir, { withFileTypes: true })
+
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name)
+    if (shouldSkip(fullPath)) continue
+
+    if (entry.isDirectory()) {
+      results.push(...(await findPackageJsonFiles(fullPath)))
+    } else if (entry.name === 'package.json') {
+      results.push(fullPath)
+    }
+  }
+
+  return results
+}
+
+/**
+ * Apply version updates to all package.json files.
+ * updates: { packageName -> latestVersion (bare, without ^) }
+ */
+export async function applyVersionUpdates(
+  pkgJsonPaths: string[],
+  updates: Record<string, string>
+): Promise<void> {
+  for (const filePath of pkgJsonPaths) {
+    let content: string
+    try {
+      content = await readFile(filePath, 'utf-8')
+    } catch {
+      continue
+    }
+
+    const pkg = JSON.parse(content)
+    let changed = false
+
+    for (const [name, latestVersion] of Object.entries(updates)) {
+      if (pkg.dependencies?.[name]) {
+        pkg.dependencies[name] = `^${latestVersion}`
+        changed = true
+      }
+      if (pkg.devDependencies?.[name]) {
+        pkg.devDependencies[name] = `^${latestVersion}`
+        changed = true
+      }
+    }
+
+    if (changed) {
+      await writeFile(filePath, JSON.stringify(pkg, null, 2) + '\n', 'utf-8')
+    }
+  }
 }
 
 /**

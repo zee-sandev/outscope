@@ -1,0 +1,17 @@
+{
+  "name": "@workspace/contracts",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@orpc/contract": "^1.9.3",
+    "@workspace/schemas": "workspace:*"
+  },
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*"
+  }
+}
