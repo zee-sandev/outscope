@@ -13,7 +13,7 @@ interface ProtectedRouteProps {
  * Protected route wrapper that requires authentication
  * Redirects to login if user is not authenticated
  */
-export function ProtectedRoute({ children, redirectTo = '/auth/login' }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, redirectTo = '/login' }: ProtectedRouteProps) {
   const router = useRouter()
   const { isAuthenticated, session, _hasHydrated } = useAuthStore()
 

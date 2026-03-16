@@ -56,10 +56,10 @@ export default function HomePage() {
           </CardHeader>
           <CardContent className="flex gap-3">
             <Button asChild size="lg">
-              <Link href="/auth/register">Create Account</Link>
+              <Link href="/register">Create Account</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/auth/login">Login</Link>
+              <Link href="/login">Login</Link>
             </Button>
           </CardContent>
         </Card>
@@ -90,10 +90,10 @@ export default function HomePage() {
             ) : (
               <>
                 <Button asChild className="w-full" variant="outline">
-                  <Link href="/auth/login">Login</Link>
+                  <Link href="/login">Login</Link>
                 </Button>
                 <Button asChild className="w-full" variant="outline">
-                  <Link href="/auth/register">Register</Link>
+                  <Link href="/register">Register</Link>
                 </Button>
               </>
             )}
@@ -266,10 +266,10 @@ export default function HomePage() {
           </CardHeader>
           <CardContent className="flex gap-3">
             <Button asChild size="lg">
-              <Link href="/auth/register">Create Account</Link>
+              <Link href="/register">Create Account</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/auth/login">Login</Link>
+              <Link href="/login">Login</Link>
             </Button>
           </CardContent>
         </Card>

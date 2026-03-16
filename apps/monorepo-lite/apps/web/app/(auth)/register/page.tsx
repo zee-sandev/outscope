@@ -44,7 +44,6 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      // Use oRPC client to call auth.register
       const { orpcClient } = await import("@/lib/orpc/orpc.client");
       const { useAuthStore } = await import("@/lib/stores/auth.store");
 
@@ -55,10 +54,8 @@ export default function RegisterPage() {
         organizationName: formData.organizationName,
       });
 
-      // Store in Zustand store (persists to localStorage)
       useAuthStore.getState().setAuth(response.user, response.session);
 
-      // Redirect to home
       router.push("/");
       router.refresh();
     } catch (err: any) {
@@ -145,7 +142,7 @@ export default function RegisterPage() {
 
           <div className="text-sm text-center text-muted-foreground">
             {t("hasAccount")}{" "}
-            <Link href="/auth/login" className="text-primary hover:underline">
+            <Link href="/login" className="text-primary hover:underline">
               {t("loginLink")}
             </Link>
           </div>

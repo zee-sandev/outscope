@@ -12,7 +12,6 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { useAuthStore } from "@/lib/stores/auth.store";
-import { ProtectedRoute } from "@/lib/auth/protected-route";
 import { formatDate } from "@/lib/utils/date";
 
 interface UserProfile {
@@ -39,7 +38,7 @@ interface UserProfile {
   }>;
 }
 
-function ProfilePageContent() {
+export default function ProfilePage() {
   const router = useRouter();
   const { session, clearAuth, updateSession, setAuth } = useAuthStore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -55,11 +54,10 @@ function ProfilePageContent() {
 
         setProfile(response);
 
-        // Update auth store with latest data (preserve token from current session)
         const currentSession = useAuthStore.getState().session;
         setAuth(
           response.user,
-          { ...response.session, token: currentSession?.token || '' },
+          { ...response.session, token: currentSession?.token || "" },
           response.organizations
         );
       } catch (err: any) {
@@ -77,11 +75,10 @@ function ProfilePageContent() {
       const { orpcClient } = await import("@/lib/orpc/orpc.client");
       await orpcClient.auth.logout({});
       clearAuth();
-      router.push("/auth/login");
+      router.push("/login");
     } catch {
-      // Even if logout fails, clear local auth
       clearAuth();
-      router.push("/auth/login");
+      router.push("/login");
     }
   };
 
@@ -225,13 +222,5 @@ function ProfilePageContent() {
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-export default function ProfilePage() {
-  return (
-    <ProtectedRoute>
-      <ProfilePageContent />
-    </ProtectedRoute>
   );
 }

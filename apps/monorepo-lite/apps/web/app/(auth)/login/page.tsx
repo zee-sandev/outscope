@@ -33,7 +33,6 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Use oRPC client to call auth.login
       const { orpcClient } = await import("@/lib/orpc/orpc.client");
       const { useAuthStore } = await import("@/lib/stores/auth.store");
 
@@ -42,10 +41,8 @@ export default function LoginPage() {
         password,
       });
 
-      // Store in Zustand store (persists to localStorage)
       useAuthStore.getState().setAuth(response.user, response.session);
 
-      // Redirect to home
       router.push("/");
       router.refresh();
     } catch (err: any) {
@@ -102,10 +99,7 @@ export default function LoginPage() {
 
           <div className="text-sm text-center text-muted-foreground">
             {t("noAccount")}{" "}
-            <Link
-              href="/auth/register"
-              className="text-primary hover:underline"
-            >
+            <Link href="/register" className="text-primary hover:underline">
               {t("registerLink")}
             </Link>
           </div>
