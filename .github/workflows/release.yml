@@ -69,3 +69,41 @@ jobs:
           echo "## Packages Published" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "$PUBLISHED_PACKAGES" | jq -r '.[] | "- **\(.name)@\(.version)**"' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Smoke test published CLI
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "@outscope/cli") | .version')
+
+          if [ -n "$VERSION" ]; then
+            TMP_DIR=$(mktemp -d)
+            cd "$TMP_DIR"
+            npx @outscope/cli@"$VERSION" create nova-api-smoke --template nova-api --yes --skip-outdated-check --skip-repomix
+            test -f nova-api-smoke/package.json
+            test -f nova-api-smoke/src/index.ts
+          fi
+
+      - name: Create GitHub release
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "@outscope/nova") | .version')
+
+          if [ -n "$VERSION" ] && ! gh release view "v$VERSION" >/dev/null 2>&1; then
+            {
+              echo "## Nova $VERSION"
+              echo ""
+              echo "Breaking release for Nova 2.0."
+              echo ""
+              echo "Published packages:"
+              echo "$PUBLISHED_PACKAGES" | jq -r '.[] | "- `\(.name)@\(.version)`"'
+              echo ""
+              echo "See MIGRATION.md for the v1 to v2 migration guide."
+            } > release-notes.md
+
+            gh release create "v$VERSION" --title "Nova $VERSION" --notes-file release-notes.md
+          fi
