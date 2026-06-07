@@ -1,5 +1,6 @@
 import 'reflect-metadata'
 import type { ImplementationMetadata } from '../domain/types'
+import type { AccessMetadata } from '../domain/access'
 
 /**
  * Infrastructure layer for managing reflection metadata
@@ -16,6 +17,7 @@ const METADATA_KEYS = {
   IMPLEMENTATIONS: Symbol('orpc:implementations'),
   MIDDLEWARE: Symbol('orpc:middleware'),
   METHOD_MIDDLEWARE: Symbol('orpc:method-middleware'),
+  METHOD_ACCESS: Symbol('orpc:method-access'),
 } as const
 
 /**
@@ -63,6 +65,28 @@ export function addImplementation(target: Function, implementation: Implementati
   const existing = getImplementations(target)
   const updated = [...existing, implementation]
   Reflect.defineMetadata(METADATA_KEYS.IMPLEMENTATIONS, updated, target)
+}
+
+export function setMethodAccess(
+  target: Object,
+  methodName: string | symbol,
+  access: AccessMetadata,
+): void {
+  const constructor = (target as any).constructor
+  const existing = getMethodAccessMap(constructor)
+  const updated = { ...existing, [methodName]: access }
+  Reflect.defineMetadata(METADATA_KEYS.METHOD_ACCESS, updated, constructor)
+}
+
+export function getMethodAccess(
+  target: Function,
+  methodName: string | symbol,
+): AccessMetadata | undefined {
+  return getMethodAccessMap(target)[methodName]
+}
+
+export function getMethodAccessMap(target: Function): Record<string | symbol, AccessMetadata> {
+  return Reflect.getMetadata(METADATA_KEYS.METHOD_ACCESS, target) ?? {}
 }
 
 /**

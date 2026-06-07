@@ -24,16 +24,19 @@ import {
   cleanupTempDir,
 } from '../utils/github-downloader.js'
 import { findOutdatedPackages } from '../utils/npm-registry.js'
-import type { TemplateContext } from '../types/index.js'
+import type { CreateProjectCliOptions, TemplateContext } from '../types/index.js'
 
 /**
  * Create a new project from template
  */
-export async function createProject(projectName?: string): Promise<void> {
+export async function createProject(
+  projectName?: string,
+  cliOptions: CreateProjectCliOptions = {}
+): Promise<void> {
   console.log(pc.cyan(pc.bold('\n🎯 Welcome to Outscope CLI!\n')))
 
   // Get project options from user
-  const options = await promptCreateProject(projectName)
+  const options = await promptCreateProject(projectName, cliOptions)
 
   const targetPath = resolve(process.cwd(), options.projectName)
 
@@ -88,45 +91,51 @@ export async function createProject(projectName?: string): Promise<void> {
   }
 
   // Check for outdated dependencies and prompt user to update
-  const checkSpinner = ora('Checking for outdated dependencies...').start()
-  try {
-    const pkgJsonFiles = await findPackageJsonFiles(targetPath)
-    const outdated = await findOutdatedPackages(pkgJsonFiles)
-    checkSpinner.stop()
+  if (!cliOptions.skipOutdatedCheck) {
+    const checkSpinner = ora('Checking for outdated dependencies...').start()
+    try {
+      const pkgJsonFiles = await findPackageJsonFiles(targetPath)
+      const outdated = await findOutdatedPackages(pkgJsonFiles)
+      checkSpinner.stop()
 
-    if (outdated.length > 0) {
-      console.log(pc.yellow(`\n  Found ${outdated.length} outdated package(s):\n`))
+      if (outdated.length > 0) {
+        console.log(pc.yellow(`\n  Found ${outdated.length} outdated package(s):\n`))
 
-      const nameWidth = Math.max(7, ...outdated.map(p => p.packageName.length)) + 2
-      const header = `  ${'Package'.padEnd(nameWidth)} ${'Current'.padEnd(12)} Latest`
-      console.log(pc.dim(header))
-      console.log(pc.dim(`  ${'─'.repeat(nameWidth + 26)}`))
-      for (const { packageName, currentVersion, latestVersion } of outdated) {
-        console.log(
-          `  ${packageName.padEnd(nameWidth)} ${pc.yellow(currentVersion.padEnd(12))} ${pc.green(latestVersion)}`
-        )
+        const nameWidth = Math.max(7, ...outdated.map(p => p.packageName.length)) + 2
+        const header = `  ${'Package'.padEnd(nameWidth)} ${'Current'.padEnd(12)} Latest`
+        console.log(pc.dim(header))
+        console.log(pc.dim(`  ${'─'.repeat(nameWidth + 26)}`))
+        for (const { packageName, currentVersion, latestVersion } of outdated) {
+          console.log(
+            `  ${packageName.padEnd(nameWidth)} ${pc.yellow(currentVersion.padEnd(12))} ${pc.green(latestVersion)}`
+          )
+        }
+        console.log()
+
+        const updateAll = cliOptions.yes
+          ? false
+          : (
+              await inquirer.prompt([
+                {
+                  type: 'confirm',
+                  name: 'updateAll',
+                  message: 'Update all to latest versions?',
+                  default: true,
+                },
+              ])
+            ).updateAll
+
+        if (updateAll) {
+          const updates = Object.fromEntries(outdated.map(p => [p.packageName, p.latestVersion]))
+          await applyVersionUpdates(pkgJsonFiles, updates)
+          console.log(pc.green('  ✓ All packages updated to latest\n'))
+        }
+      } else {
+        checkSpinner.succeed(pc.green('All dependencies are up to date'))
       }
-      console.log()
-
-      const { updateAll } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'updateAll',
-          message: 'Update all to latest versions?',
-          default: true,
-        },
-      ])
-
-      if (updateAll) {
-        const updates = Object.fromEntries(outdated.map(p => [p.packageName, p.latestVersion]))
-        await applyVersionUpdates(pkgJsonFiles, updates)
-        console.log(pc.green('  ✓ All packages updated to latest\n'))
-      }
-    } else {
-      checkSpinner.succeed(pc.green('All dependencies are up to date'))
+    } catch {
+      checkSpinner.warn(pc.yellow('Could not check for outdated dependencies'))
     }
-  } catch {
-    checkSpinner.warn(pc.yellow('Could not check for outdated dependencies'))
   }
 
   // Detect package manager
@@ -172,14 +181,16 @@ export async function createProject(projectName?: string): Promise<void> {
 
   // Check and install repomix
   let hasRepomix = false
-  try {
-    await execa('repomix', ['--version'])
-    hasRepomix = true
-  } catch {
-    // repomix not found
+  if (!cliOptions.skipRepomix) {
+    try {
+      await execa('repomix', ['--version'])
+      hasRepomix = true
+    } catch {
+      // repomix not found
+    }
   }
 
-  if (!hasRepomix) {
+  if (!hasRepomix && !cliOptions.skipRepomix) {
     const { installRepomix } = await inquirer.prompt([
       {
         type: 'confirm',

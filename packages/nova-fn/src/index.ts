@@ -6,15 +6,18 @@
  *
  * @example
  * ```typescript
- * import { createApp, operation, corsPlugin } from '@outscope/nova-fn'
+ * import { createApp, handle, corsPlugin } from '@outscope/nova-fn'
  *
- * const myOp = operation(myContract.getUser, async (input, ctx) => {
+ * const userHandlers = defineHandlers(routes.user, {
+ *   get: handle.auth(async (input, ctx) => {
  *   return userService.getById(input.id)
- * }).use(authMiddleware).catch().build()
+ *   }),
+ * })
  *
  * const app = await createApp({
- *   contract,
- *   operations: { users: { getUser: myOp } },
+ *   routes,
+ *   access,
+ *   handlers: { user: userHandlers },
  *   plugins: [corsPlugin({ origins: ['http://localhost:3000'] })],
  * })
  *
@@ -29,18 +32,18 @@
 export { createApp } from './core/create-app'
 export type { AppConfig, OutscopeApp, ErrorHandler } from './core/create-app'
 export { ORPCHono } from './core/orpc-hono'
-export type { ApplyOperationsOptions } from './core/orpc-hono'
+export type { ApplyHandlersOptions } from './core/orpc-hono'
 
 // ============================================================================
 // Functional API
 // ============================================================================
 
-export { operation, createOperationFactory } from './functional/define-operations'
+export { defineHandlers, handle } from './functional/define-handlers'
 export type {
-  OperationDef,
-  OperationMap,
-  PresetConfig,
-} from './functional/define-operations'
+  HandlerDef,
+  HandlerMap,
+} from './functional/define-handlers'
+export { defineAccess, resolveAccessPolicy } from './domain/access'
 
 // ============================================================================
 // Plugins
@@ -130,6 +133,14 @@ export type {
   RouteMetadata,
   HonoMiddleware,
 } from './domain/types'
+
+export type {
+  AccessConfig,
+  AccessPolicy,
+  AccessMetadata,
+  EndpointAccessMetadata,
+  ResolvedAccessPolicy,
+} from './domain/access'
 
 // ============================================================================
 // Utilities

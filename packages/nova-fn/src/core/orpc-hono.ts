@@ -1,55 +1,55 @@
 import type { Hono } from 'hono'
 import type { AnyContractRouter } from '@orpc/contract'
 import type { ORPCHonoOptions, HonoMiddleware } from '../domain/types'
-import type { OperationMap } from '../functional/define-operations'
-import { FunctionalRegistrar } from '../functional/functional-registrar'
+import type { HandlerMap } from '../functional/define-handlers'
+import { HandlerRegistrar } from '../functional/handler-registrar'
 
 /**
- * Options for applying operations to Hono
+ * Options for applying handlers to Hono
  */
-export interface ApplyOperationsOptions {
-  /** Operation map to register */
-  operations: OperationMap
+export interface ApplyHandlersOptions {
+  /** Handler map to register */
+  handlers: HandlerMap
 }
 
 /**
  * Main class for integrating oRPC with Hono framework (lite/functional version).
  *
- * Uses pure function operations instead of decorator-based controllers.
+ * Uses pure function handlers instead of decorator-based controllers.
  * No reflect-metadata required.
  */
 export class ORPCHono<TContract extends AnyContractRouter = AnyContractRouter> {
   private readonly interceptors: HonoMiddleware[]
-  private readonly contract?: TContract
-  private readonly producer?: unknown
+  private readonly routes?: TContract
+  private readonly access: ORPCHonoOptions<TContract>['access']
 
-  constructor(options: ORPCHonoOptions<TContract> = {}) {
+  constructor(options: ORPCHonoOptions<TContract>) {
     this.interceptors = options.interceptors ?? []
-    this.contract = options.contract
-    this.producer = options.producer
+    this.routes = options.routes
+    this.access = options.access
   }
 
   /**
-   * Apply operations and register them with Hono
+   * Apply handlers and register them with Hono
    *
    * @param app - Hono application instance
    * @param options - Operations to register
    * @returns Router structure with registered procedures
    */
-  async applyOperations(
+  async applyHandlers(
     app: Hono,
-    options: ApplyOperationsOptions,
+    options: ApplyHandlersOptions,
   ): Promise<any> {
     // Apply global interceptors
     this.applyInterceptors(app)
 
-    // Register operations
-    const registrar = new FunctionalRegistrar({
-      contractRouter: this.contract as AnyContractRouter,
-      producer: this.producer,
+    // Register handlers
+    const registrar = new HandlerRegistrar({
+      routes: this.routes as AnyContractRouter,
+      access: this.access,
     })
 
-    return registrar.register(options.operations)
+    return registrar.register(options.handlers)
   }
 
   private applyInterceptors(app: Hono): void {
@@ -59,7 +59,7 @@ export class ORPCHono<TContract extends AnyContractRouter = AnyContractRouter> {
   }
 
   getContract(): TContract | undefined {
-    return this.contract
+    return this.routes
   }
 
   getInterceptors(): HonoMiddleware[] {
@@ -67,6 +67,6 @@ export class ORPCHono<TContract extends AnyContractRouter = AnyContractRouter> {
   }
 
   getProducer(): unknown {
-    return this.producer
+    return undefined
   }
 }

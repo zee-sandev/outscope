@@ -59,7 +59,7 @@ export interface RequestLogInfo {
  * @example
  * ```typescript
  * const app = await createApp({
- *   contract,
+ *   routes,
  *   controllers: [...],
  *   plugins: [
  *     loggerPlugin({

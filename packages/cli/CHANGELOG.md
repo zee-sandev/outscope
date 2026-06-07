@@ -1,43 +1,17 @@
 # @outscope/cli
 
+## 2.0.0
+
+### Major Changes
+
+- Generate Nova 2.0 controller code with `@Handle` and access decorators.
+- Update templates for `routes`, `access`, and `handlers`.
+- Keep GitHub scaffolding and resolve template names to `templates/*`.
+- Add non-interactive create flags for release smoke tests and CI scaffolding.
+- Remove generated `@Implement` and `@Implementer` usage.
+
 ## 1.0.0
 
 ### Major Changes
 
-- Release major version for all packages
-
-## 0.2.3
-
-### Patch Changes
-
-- Release patch version for @outscope/cli
-
-## 0.2.2
-
-### Patch Changes
-
-- Release patch version for @outscope/cli
-
-## 0.2.1
-
-### Patch Changes
-
-- Release patch version for @outscope/cli
-
-## 0.2.0
-
-### Minor Changes
-
-- Release minor version for both packages
-
-## 0.1.2
-
-### Patch Changes
-
-- Release patch version for both packages
-
-## 0.1.1
-
-### Patch Changes
-
-- Release patch version for both packages
+- Release major version for all packages.

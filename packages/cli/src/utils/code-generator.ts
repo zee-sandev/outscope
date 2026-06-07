@@ -33,22 +33,21 @@ export function toKebabCase(str: string): string {
  */
 export function generateController(name: string, featureName: string): string {
   const className = `${toPascalCase(name)}Controller`
-  const contractName = toCamelCase(name)
+  const routeName = toCamelCase(name)
 
-  return `import { Controller, Implement, Implementer } from '@outscope/nova'
-import { ${contractName} } from '@contracts/${toKebabCase(featureName)}'
-import { pub } from '@libs/orpc/orpc'
-import { ${contractName}Service } from './${toKebabCase(name)}.service'
+  return `import { Controller, Handle, Public } from '@outscope/nova'
+import { ${routeName} } from '@contracts/${toKebabCase(featureName)}'
+import { ${routeName}Service } from './${toKebabCase(name)}.service'
 import type { ORPCContext } from '@libs/orpc/context'
 
 @Controller()
-@Implementer(pub)
 export class ${className} {
-  // TODO: Implement contract methods
+  // TODO: Implement route handlers
   // Example:
-  // @Implement(${contractName}.list)
+  // @Public()
+  // @Handle(${routeName}.list)
   // async list(input: any, context: ORPCContext): Promise<any> {
-  //   return ${contractName}Service.list(input)
+  //   return ${routeName}Service.list(input)
   // }
 }
 `

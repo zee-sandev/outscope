@@ -70,7 +70,7 @@ export interface OpenAPIPluginOptions {
  * Create an OpenAPI documentation plugin.
  *
  * This plugin:
- * - Generates OpenAPI 3.0 specification from your contracts
+ * - Generates OpenAPI 3.0 specification from your routes
  * - Serves Swagger UI at the configured path
  * - Serves the OpenAPI JSON spec at the configured path
  *
@@ -80,7 +80,7 @@ export interface OpenAPIPluginOptions {
  * @example
  * ```typescript
  * const app = await createApp({
- *   contract,
+ *   routes,
  *   controllers: [...],
  *   plugins: [
  *     openapiPlugin({
@@ -108,7 +108,7 @@ export const openapiPlugin: PluginFactory<OpenAPIPluginOptions, BaseORPCContext>
   return {
     name: 'openapi',
 
-    async onReady({ app, contract, config }) {
+    async onReady({ app, routes, config }) {
       let openApiSpec: object | null = null
 
       // Generate OpenAPI spec
@@ -120,7 +120,7 @@ export const openapiPlugin: PluginFactory<OpenAPIPluginOptions, BaseORPCContext>
           schemaConverters: [new ZodToJsonSchemaConverter()],
         })
 
-        openApiSpec = await generator.generate(contract, {
+        openApiSpec = await generator.generate(routes, {
           info: {
             title,
             version,

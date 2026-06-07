@@ -1,9 +1,17 @@
 export interface CreateProjectOptions {
   projectName: string
-  template: 'beta' | 'monorepo'
+  template: 'nova-api' | 'nova-fn-api' | 'turbo-nova' | 'turbo-nova-fn'
   includePrisma: boolean
   installDependencies: boolean
   initDatabase: boolean
+}
+
+export interface CreateProjectCliOptions {
+  template?: CreateProjectOptions['template']
+  yes?: boolean
+  installDependencies?: boolean
+  skipRepomix?: boolean
+  skipOutdatedCheck?: boolean
 }
 
 export interface GenerateOptions {

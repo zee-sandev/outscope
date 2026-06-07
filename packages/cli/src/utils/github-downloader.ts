@@ -1,5 +1,4 @@
 import { pipeline } from 'stream/promises'
-import { createWriteStream } from 'fs'
 import { mkdir, mkdtemp, rm } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
@@ -70,23 +69,29 @@ export async function downloadTemplateFromGitHub(
  */
 export function getTemplateConfig(template: string): DownloadTemplateOptions {
   const templates: Record<string, DownloadTemplateOptions> = {
-    beta: {
+    'nova-api': {
       owner: 'zee-sandev',
       repo: 'outscope',
       branch: 'main',
-      templatePath: 'apps/example-beta',
+      templatePath: 'templates/nova-api',
     },
-    monorepo: {
+    'nova-fn-api': {
       owner: 'zee-sandev',
       repo: 'outscope',
       branch: 'main',
-      templatePath: 'apps/monorepo',
+      templatePath: 'templates/nova-fn-api',
     },
-    'monorepo-lite': {
+    'turbo-nova': {
       owner: 'zee-sandev',
       repo: 'outscope',
       branch: 'main',
-      templatePath: 'apps/monorepo-lite',
+      templatePath: 'templates/turbo-nova',
+    },
+    'turbo-nova-fn': {
+      owner: 'zee-sandev',
+      repo: 'outscope',
+      branch: 'main',
+      templatePath: 'templates/turbo-nova-fn',
     },
   }
 

@@ -1,41 +1,17 @@
-# @outscope/orpc-hono
+# @outscope/nova
+
+## 2.0.0
+
+### Major Changes
+
+- Introduce Nova 2.0 DX vocabulary: `routes`, `access`, and `@Handle`.
+- Add `defineAccess`, `@Public`, `@Auth`, and `@Permission`.
+- Replace the old single app-level producer model with a global access policy registry.
+- Remove old public examples based on `@Implement`.
+- Add access metadata to handler context as `ctx.access`.
 
 ## 1.0.0
 
 ### Major Changes
 
-- Release major version for all packages
-
-## 0.4.0
-
-### Minor Changes
-
-- Release minor version for both packages
-
-## 0.2.0
-
-### Minor Changes
-
-- Release minor version for @outscope/orpc-hono
-- Change Architecture
-- Deprecate @Implementer
-- Add @Middleware
-
-## 0.1.3
-
-### Patch Changes
-
-- Release patch version for @outscope/orpc-hono
-- Fixbug @Implementer middleware doesn't apply correctly
-
-## 0.1.2
-
-### Patch Changes
-
-- Release patch version for both packages
-
-## 0.1.1
-
-### Patch Changes
-
-- Release patch version for both packages
+- Release major version for all packages.

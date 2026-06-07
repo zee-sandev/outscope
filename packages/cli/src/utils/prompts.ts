@@ -1,12 +1,23 @@
 import inquirer from 'inquirer'
-import type { CreateProjectOptions, GenerateOptions } from '../types/index.js'
+import type { CreateProjectCliOptions, CreateProjectOptions, GenerateOptions } from '../types/index.js'
 
 /**
  * Prompt user for create project options
  */
 export async function promptCreateProject(
-  projectName?: string
+  projectName?: string,
+  cliOptions: CreateProjectCliOptions = {}
 ): Promise<CreateProjectOptions> {
+  if (cliOptions.yes) {
+    return {
+      projectName: projectName || 'my-outscope-app',
+      template: cliOptions.template || 'nova-api',
+      includePrisma: false,
+      installDependencies: cliOptions.installDependencies ?? false,
+      initDatabase: false,
+    }
+  }
+
   const answers = await inquirer.prompt([
     {
       type: 'input',
@@ -27,17 +38,13 @@ export async function promptCreateProject(
       name: 'template',
       message: 'Select template:',
       choices: [
-        { name: 'Beta (with Prisma example)', value: 'beta' },
-        { name: 'Monorepo (with Next.js 15, Hono, oRPC, Prisma, shadcn/ui)', value: 'monorepo' },
-        { name: 'Monorepo Lite (functional, no decorators, edge-ready)', value: 'monorepo-lite' },
+        { name: 'Nova API (decorator controllers)', value: 'nova-api' },
+        { name: 'Nova Fn API (functional handlers)', value: 'nova-fn-api' },
+        { name: 'Turbo Nova (monorepo + decorator API)', value: 'turbo-nova' },
+        { name: 'Turbo Nova Fn (monorepo + functional API)', value: 'turbo-nova-fn' },
       ],
-      default: 'beta',
-    },
-    {
-      type: 'confirm',
-      name: 'includePrisma',
-      message: 'Include Prisma ORM?',
-      default: true,
+      default: 'nova-api',
+      when: !cliOptions.template,
     },
     {
       type: 'confirm',
@@ -45,21 +52,14 @@ export async function promptCreateProject(
       message: 'Install dependencies?',
       default: true,
     },
-    {
-      type: 'confirm',
-      name: 'initDatabase',
-      message: 'Initialize database? (runs prisma db push)',
-      default: true,
-      when: (answers) => answers.installDependencies && answers.includePrisma,
-    },
   ])
 
   return {
     projectName: projectName || answers.projectName,
-    template: answers.template,
-    includePrisma: answers.includePrisma,
-    installDependencies: answers.installDependencies,
-    initDatabase: answers.initDatabase || false,
+    template: cliOptions.template || answers.template || 'nova-api',
+    includePrisma: false,
+    installDependencies: cliOptions.installDependencies ?? answers.installDependencies,
+    initDatabase: false,
   }
 }
 

@@ -1,7 +1,8 @@
 import type { Hono, Context } from 'hono'
 import type { AnyContractRouter } from '@orpc/contract'
 import type { BaseORPCContext, ContextFactory } from '../domain/context'
-import type { OperationMap } from '../functional/define-operations'
+import type { HandlerMap } from '../functional/define-handlers'
+import type { AccessConfig } from '../domain/access'
 
 /**
  * Plugin system types for @outscope/nova-fn
@@ -12,21 +13,20 @@ import type { OperationMap } from '../functional/define-operations'
  */
 export interface AppConfig<TContext extends BaseORPCContext = BaseORPCContext> {
   /**
-   * Root contract router defining the API structure
+   * Root route router defining the API structure
    */
-  contract: AnyContractRouter
+  routes: AnyContractRouter
 
   /**
-   * Operation map defining all API operations.
+   * Handler map defining all API implementations.
    * Supports nested modules: { auth: { register, login }, projects: { list, create } }
    */
-  operations: OperationMap
+  handlers: HandlerMap
 
   /**
-   * oRPC producer/implementer instance.
-   * If not provided, one will be created from the contract.
+   * Global access policy registry.
    */
-  producer?: unknown
+  access: AccessConfig
 
   /**
    * Factory function to create request context.
@@ -69,8 +69,8 @@ export interface AppConfig<TContext extends BaseORPCContext = BaseORPCContext> {
 export interface PluginContext<TContext extends BaseORPCContext = BaseORPCContext> {
   /** The Hono application instance */
   app: Hono
-  /** The contract router */
-  contract: AnyContractRouter
+  /** The route router */
+  routes: AnyContractRouter
   /** The registered router (available after controller registration) */
   router: AnyContractRouter
   /** The original app configuration */
@@ -99,7 +99,7 @@ export interface Plugin<TContext extends BaseORPCContext = BaseORPCContext> {
   middleware?: (c: Context, next: () => Promise<void>) => Promise<void | Response>
 
   /**
-   * Called after all operations are registered.
+   * Called after all handlers are registered.
    * Use this to add additional routes like documentation.
    */
   onReady?: (ctx: PluginContext<TContext>) => void | Promise<void>
@@ -147,9 +147,9 @@ export interface OutscopeApp<TContext extends BaseORPCContext = BaseORPCContext>
   router: AnyContractRouter
 
   /**
-   * The contract used to create the application
+   * The routes used to create the application
    */
-  contract: AnyContractRouter
+  routes: AnyContractRouter
 
   /**
    * The registered plugins
@@ -183,10 +183,10 @@ export interface OutscopeApp<TContext extends BaseORPCContext = BaseORPCContext>
   getOpenAPISpec(): Promise<object>
 
   /**
-   * Programmatically register additional operations at runtime
-   * @param operations - Operation map to register
+   * Programmatically register additional handlers at runtime
+   * @param handlers - Handler map to register
    */
-  registerOperations(operations: OperationMap): Promise<void>
+  registerHandlers(handlers: HandlerMap): Promise<void>
 
   /**
    * Gracefully shutdown the application

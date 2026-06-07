@@ -1,193 +1,133 @@
-# @horn Monorepo
+# @outscope Monorepo
 
-Modern, type-safe development tools and frameworks.
+Type-safe API tooling for Hono and oRPC.
 
-## 📦 Packages
+Nova 2.0 uses a clearer DX vocabulary:
 
-### @horn/orpc-hono
+```txt
+routes   = API route/schema definition
+access   = global producer and policy registry
+handlers = function implementations for @outscope/nova-fn
+@Handle  = controller method binding for @outscope/nova
+```
 
-oRPC integration for Hono framework with OOP configuration. Build type-safe APIs with contract-first development.
+## Packages
 
-**Features:**
+- `@outscope/nova` - decorator-based Hono + oRPC framework for controller-style APIs.
+- `@outscope/nova-fn` - functional Hono + oRPC framework with explicit handlers.
+- `@outscope/cli` - scaffolding and code generation for Nova projects.
+- `@outscope/eslint-config` and `@outscope/typescript-config` - shared development config.
 
-- ✨ Instance-based OOP pattern
-- 🎯 Full type safety end-to-end
-- 🔥 Hono framework integration
-- 📝 Contract-first development
-- 🛡️ Built-in error handling
-- 🌐 Edge runtime compatible
-
-[Documentation](./packages/orpc-hono/README.md) | [Quick Start](./QUICKSTART.md)
-
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
-# Install dependencies
 pnpm install
-
-# Build packages
 pnpm build
-
-# Run example app
-cd apps/example-orpc-hono
-pnpm dev
+pnpm --filter @outscope/example-nova-basic dev
 ```
 
-Visit: `http://localhost:3000`
+The example API runs on `http://localhost:3000`.
 
-## 📁 Structure
+## Repository Layout
 
-```
-@horn/
-├── packages/
-│   ├── orpc-hono/              # Main package
-│   ├── eslint-config/          # ESLint configs
-│   └── typescript-config/      # TypeScript configs
-│
-├── apps/
-│   ├── example-orpc-hono/      # Example Hono app
-│   └── docs/                   # Documentation site
-│
-├── QUICKSTART.md               # Quick start guide
-└── README.md                   # This file
+```txt
+packages/   Published packages and shared configs
+examples/   Small runnable learning projects
+templates/  GitHub scaffold sources used by @outscope/cli
+docs/       Concepts, guides, and release checklists
 ```
 
-## 🎯 Example Usage
+CLI scaffolding still downloads from GitHub. The selected template maps to one of:
 
-### 1. Define Contract
+- `templates/nova-api`
+- `templates/nova-fn-api`
+- `templates/turbo-nova`
+- `templates/turbo-nova-fn`
 
-```typescript
-import { oc } from '@orpc/contract'
-import * as z from 'zod'
+## Decorator API
 
-const getUserContract = oc
-  .route({ method: 'GET', path: '/users/{id}' })
-  .input(z.object({ id: z.string() }))
-  .output(z.object({ id: z.string(), name: z.string() }))
+```ts
+import { createApp, defineAccess, corsPlugin } from '@outscope/nova'
+import { implement } from '@orpc/server'
+import { routes } from './contracts'
+
+const pub = implement(routes).$context<AppContext>()
+const authed = pub.use(authMiddleware)
+const permissioned = authed.use(permissionMiddleware)
+
+const access = defineAccess({
+  default: 'public',
+  policies: {
+    public: { producer: pub },
+    auth: { producer: authed },
+    permission: { producer: permissioned },
+  },
+})
+
+const app = await createApp({
+  routes,
+  access,
+  controllers: 'src/features/**/*.controller.ts',
+  plugins: [corsPlugin({ origins: ['http://localhost:3000'] })],
+})
 ```
 
-### 2. Implement Controller
-
-```typescript
-import { ORPCHono, Controller, Implement, implement } from '@horn/orpc-hono'
+```ts
+import { Controller, Handle, Permission, Public } from '@outscope/nova'
+import { routes } from '../../contracts'
 
 @Controller()
-class UserController {
-  @Implement(getUserContract)
-  getUser() {
-    return implement(getUserContract).handler(({ input }) => {
-      return { id: input.id, name: 'John Doe' }
-    })
+export class PlanetController {
+  @Public()
+  @Handle(routes.planet.list)
+  list(input: ListPlanetsInput, ctx: AppContext) {
+    return planetService.list(input)
+  }
+
+  @Permission('planet:create')
+  @Handle(routes.planet.create)
+  create(input: CreatePlanetInput, ctx: AppContextWithUser) {
+    return planetService.create(input, ctx.user)
   }
 }
 ```
 
-### 3. Setup Server
+## Functional API
 
-```typescript
-import { Hono } from 'hono'
-import { registerController } from '@horn/orpc-hono'
+```ts
+import { createApp, defineAccess, defineHandlers, handle } from '@outscope/nova-fn'
 
-const app = new Hono()
-const orpcHono = new ORPCHono({ prefix: '/api' })
+export const planetHandlers = defineHandlers(routes.planet, {
+  list: handle.public(async (input, ctx) => {
+    return planetService.list(input)
+  }),
 
-orpcHono.applyMiddleware(app)
-await registerController(app, new UserController(), orpcHono)
-```
-
-## 📚 Documentation
-
-- [Quick Start](./QUICKSTART.md) - Get started in 5 minutes
-- [Package Documentation](./packages/orpc-hono/README.md) - Full API docs
-- [Architecture](./packages/orpc-hono/ARCHITECTURE.md) - Design decisions
-- [Migration Guide](./packages/orpc-hono/MIGRATION.md) - Upgrade guide
-- [Example App](./apps/example-orpc-hono/README.md) - Working example
-
-## 🛠️ Development
-
-### Prerequisites
-
-- Node.js 18+ (22+ recommended)
-- pnpm 8+
-- TypeScript 5.0+
-
-### Commands
-
-```bash
-# Install dependencies
-pnpm install
-
-# Build all packages
-pnpm build
-
-# Clean build artifacts
-pnpm clean
-
-# Run example
-pnpm --filter @horn/example-orpc-hono dev
-```
-
-## 🎨 Features
-
-### Type Safety
-
-Full end-to-end type safety from contract to client:
-
-```typescript
-// Contract defines the types
-const contract = oc.route(...)
-  .input(z.object({ id: z.string() }))
-  .output(UserSchema)
-
-// Implementation is type-checked
-implement(contract).handler(({ input }) => {
-  input.id // ✅ TypeScript knows this is string
-  return user // ✅ Must match UserSchema
+  create: handle.permission('planet:create', async (input, ctx) => {
+    return planetService.create(input, ctx.user)
+  }),
 })
 
-// Client is fully typed
-const user = await client.user.get({ id: '123' })
-user.name // ✅ TypeScript knows all properties
+const app = await createApp({
+  routes,
+  access,
+  handlers: {
+    planet: planetHandlers,
+  },
+})
 ```
 
-### Edge Runtime
+## Development
 
-Works seamlessly in edge environments:
+```bash
+pnpm install
+pnpm check-types
+pnpm test
+pnpm build
+pnpm audit:architecture
+```
 
-- ✅ Cloudflare Workers
-- ✅ Vercel Edge Functions
-- ✅ Deno Deploy
-- ✅ Fastly Compute@Edge
+`pnpm audit:architecture` uses `dependency-cruiser` to enforce package boundaries and detect circular dependencies.
 
-### Performance
+## Migration
 
-Lightweight and fast:
-
-- 📦 Small bundle size (~100KB)
-- ⚡ No heavy frameworks
-- 🚀 Native Hono performance
-- 🔧 Zero config needed
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read our contributing guide.
-
-## 📄 License
-
-MIT License - see LICENSE for details
-
-## 🙏 Credits
-
-- Built with [Hono](https://hono.dev)
-- Inspired by [@orpc/nest](https://github.com/unnoq/orpc)
-- Powered by [oRPC](https://orpc.unnoq.com)
-
-## 📞 Support
-
-- 📖 [Documentation](./packages/orpc-hono/README.md)
-- 💬 [Discussions](https://github.com/your-repo/discussions)
-- 🐛 [Issues](https://github.com/your-repo/issues)
-
----
-
-Made with ❤️ by the @horn team
+Nova 2.0 is a breaking release. Read [MIGRATION.md](./MIGRATION.md) before upgrading from 1.x.

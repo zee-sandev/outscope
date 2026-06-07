@@ -1,6 +1,6 @@
 {
   "name": "@outscope/nova-fn",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Lightweight functional oRPC integration for Hono - Pure functions, zero decorators, minimal overhead",
   "type": "module",
   "main": "./dist/index.js",
@@ -24,7 +24,7 @@
     "build": "tsc",
     "link:dev": "pnpm build && pnpm link --global",
     "check-types": "tsc --noEmit",
-    "test": "echo \"No tests yet\"",
+    "test": "vitest run src",
     "clean": "rm -rf dist",
     "prepublishOnly": "pnpm clean && pnpm build"
   },
@@ -83,12 +83,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zee-sandev/horn.git",
+    "url": "https://github.com/zee-sandev/outscope.git",
     "directory": "packages/nova-fn"
   },
-  "homepage": "https://github.com/zee-sandev/horn#readme",
+  "homepage": "https://github.com/zee-sandev/outscope#readme",
   "bugs": {
-    "url": "https://github.com/zee-sandev/horn/issues"
+    "url": "https://github.com/zee-sandev/outscope/issues"
   },
   "publishConfig": {
     "access": "public"
