@@ -1,1 +1,0 @@
-export { useTranslateWithFallback } from "./useTranslateWithFallback";

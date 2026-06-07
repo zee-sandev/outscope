@@ -49,7 +49,7 @@ export interface CORSPluginOptions {
  * @example
  * ```typescript
  * const app = await createApp({
- *   contract,
+ *   routes,
  *   controllers: [...],
  *   plugins: [
  *     corsPlugin({

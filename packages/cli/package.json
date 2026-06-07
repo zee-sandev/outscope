@@ -1,6 +1,6 @@
 {
   "name": "@outscope/cli",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "CLI tool for scaffolding @outscope/nova projects",
   "type": "module",
   "bin": {
@@ -22,7 +22,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "check-types": "tsc --noEmit",
-    "test": "echo \"No tests yet\""
+    "test": "vitest run src"
   },
   "dependencies": {
     "commander": "^12.1.0",
@@ -51,12 +51,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zee-sandev/horn.git",
+    "url": "https://github.com/zee-sandev/outscope.git",
     "directory": "packages/cli"
   },
-  "homepage": "https://github.com/zee-sandev/horn#readme",
+  "homepage": "https://github.com/zee-sandev/outscope#readme",
   "bugs": {
-    "url": "https://github.com/zee-sandev/horn/issues"
+    "url": "https://github.com/zee-sandev/outscope/issues"
   },
   "publishConfig": {
     "access": "public"

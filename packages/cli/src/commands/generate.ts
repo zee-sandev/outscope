@@ -79,9 +79,7 @@ export async function generate(type?: string, name?: string): Promise<void> {
       )
     }
 
-    console.log(
-      pc.yellow('\n💡 Don\'t forget to update your contract exports in src/contracts/index.ts\n')
-    )
+    console.log(pc.yellow('\n💡 Don\'t forget to export your routes from src/contracts/index.ts\n'))
   } catch (error) {
     spinner.fail(pc.red('Failed to generate files'))
     console.error(error)

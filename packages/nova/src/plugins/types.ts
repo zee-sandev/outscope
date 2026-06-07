@@ -2,6 +2,7 @@ import type { Hono, Context } from 'hono'
 import type { AnyContractRouter } from '@orpc/contract'
 import type { BaseORPCContext, ContextFactory } from '../domain/context'
 import type { ControllerClass } from '../application/controller-loader'
+import type { AccessConfig } from '../domain/access'
 
 /**
  * Plugin system types for @outscope/nova
@@ -12,9 +13,9 @@ import type { ControllerClass } from '../application/controller-loader'
  */
 export interface AppConfig<TContext extends BaseORPCContext = BaseORPCContext> {
   /**
-   * Root contract router defining the API structure
+   * Root route router defining the API structure
    */
-  contract: AnyContractRouter
+  routes: AnyContractRouter
 
   /**
    * Controllers to register.
@@ -24,10 +25,9 @@ export interface AppConfig<TContext extends BaseORPCContext = BaseORPCContext> {
   controllers: string | ControllerClass[]
 
   /**
-   * oRPC producer/implementer instance.
-   * If not provided, one will be created from the contract.
+   * Global access policy registry.
    */
-  producer?: unknown
+  access: AccessConfig
 
   /**
    * Factory function to create request context.
@@ -70,8 +70,8 @@ export interface AppConfig<TContext extends BaseORPCContext = BaseORPCContext> {
 export interface PluginContext<TContext extends BaseORPCContext = BaseORPCContext> {
   /** The Hono application instance */
   app: Hono
-  /** The contract router */
-  contract: AnyContractRouter
+  /** The route router */
+  routes: AnyContractRouter
   /** The registered router (available after controller registration) */
   router: AnyContractRouter
   /** The original app configuration */
@@ -148,9 +148,9 @@ export interface OutscopeApp<TContext extends BaseORPCContext = BaseORPCContext>
   router: AnyContractRouter
 
   /**
-   * The contract used to create the application
+   * The routes used to create the application
    */
-  contract: AnyContractRouter
+  routes: AnyContractRouter
 
   /**
    * The registered plugins

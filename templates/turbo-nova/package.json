@@ -1,0 +1,16 @@
+{
+  "name": "turbo-nova",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "turbo run build",
+    "check-types": "turbo run check-types",
+    "dev": "turbo run dev"
+  },
+  "devDependencies": {
+    "turbo": "^2.7.4",
+    "typescript": "^5.9.2"
+  },
+  "packageManager": "pnpm@10.4.1"
+}

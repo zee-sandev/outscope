@@ -61,7 +61,7 @@ export interface ErrorResponse {
  * @example
  * ```typescript
  * const app = await createApp({
- *   contract,
+ *   routes,
  *   controllers: [...],
  *   plugins: [
  *     errorHandlerPlugin({

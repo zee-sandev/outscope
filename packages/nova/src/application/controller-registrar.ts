@@ -4,9 +4,10 @@ import { implement } from '@orpc/server'
 import type { AnyContractRouter } from '@orpc/contract'
 import type { RouteRegisterConfig, WithORPCMetadata } from '../domain/types'
 import { NotAControllerError, MissingHandlerError } from '../domain/errors'
-import { isController, getImplementations, getMiddleware, getMethodMiddleware } from '../infrastructure/decorators'
+import { isController, getImplementations, getMiddleware, getMethodMiddleware, getMethodAccess } from '../infrastructure/decorators'
 import { ContractResolver } from './contract-resolver'
 import { InputExtractor } from './input-extractor'
+import { createAccessMiddleware, resolveAccessPolicy } from '../domain/access'
 
 /**
  * Service for registering controller classes with Hono
@@ -56,29 +57,33 @@ export class ControllerRegistrar {
     const router: AnyContractRouter = {} as AnyContractRouter
 
     for (const implementation of implementations) {
-      const { contract, method, methodName } = implementation
+      const { route, method, methodName } = implementation
       const boundMethod = method.bind(controller)
 
       // Get method-level middleware if available
       const methodMiddleware = getMethodMiddleware(controllerClass, methodName)
+      const methodAccess = getMethodAccess(controllerClass, methodName)
 
       // Resolve contract path
-      const contractPath = this.config.contractRouter
-        ? this.contractResolver.findContractPath(this.config.contractRouter, contract)
+      const routePath = this.config.routes
+        ? this.contractResolver.findContractPath(this.config.routes, route)
         : []
+
+      const accessPolicy = resolveAccessPolicy(methodAccess, this.config.access)
 
       // Create procedure with proper middleware handling
       const procedure = this.createProcedure(
-        contract,
+        route,
         boundMethod,
-        contractPath,
-        this.config.producer,
+        routePath,
+        accessPolicy.producer,
+        accessPolicy.metadata,
         classMiddleware,
         methodMiddleware
       )
 
       // Build router structure
-      const structure = this.buildRouterStructure(contractPath, procedure, implementation.methodName)
+      const structure = this.buildRouterStructure(routePath, procedure, implementation.methodName)
       this.deepMerge(router as Record<string, unknown>, structure as Record<string, unknown>)
     }
 
@@ -98,18 +103,23 @@ export class ControllerRegistrar {
    * @returns Procedure with handler
    */
   private createProcedure(
-    contract: unknown,
+    route: unknown,
     boundMethod: Function,
-    contractPath: string[],
-    producer?: unknown,
+    routePath: string[],
+    producer: unknown,
+    accessMetadata: { policy: string; permissions?: string[] },
     classMiddleware?: unknown,
     methodMiddleware?: unknown
   ): WithORPCMetadata {
     // Start with base producer or create fresh implementer
-    let baseImplementer: unknown = producer || implement(contract as AnyContractRouter)
+    let baseImplementer: unknown = producer || implement(route as AnyContractRouter)
 
     // Apply middleware to base implementer first
     let middlewareAppliedImplementer = baseImplementer
+
+    if (this.hasUseMethod(middlewareAppliedImplementer)) {
+      middlewareAppliedImplementer = (middlewareAppliedImplementer as { use: (middleware: unknown) => unknown }).use(createAccessMiddleware(accessMetadata))
+    }
 
     // Apply class-level middleware if available
     if (classMiddleware && this.hasUseMethod(middlewareAppliedImplementer)) {
@@ -123,19 +133,19 @@ export class ControllerRegistrar {
 
     // Navigate to the specific procedure in the middleware-applied implementer
     let finalImplementer: unknown
-    if (contractPath.length > 0) {
+    if (routePath.length > 0) {
       let current: any = middlewareAppliedImplementer
-      for (const key of contractPath) {
+      for (const key of routePath) {
         if (current && typeof current === 'object' && key in current) {
           current = current[key]
         } else {
-          throw new MissingHandlerError(`Contract path ${contractPath.join('.')} not found in middleware-applied implementer`)
+          throw new MissingHandlerError(`Route path ${routePath.join('.')} not found in access producer`)
         }
       }
       finalImplementer = current
     } else {
       // Try to find the procedure by contract reference
-      const found = this.contractResolver.findProcedure(middlewareAppliedImplementer, contract)
+      const found = this.contractResolver.findProcedure(middlewareAppliedImplementer, route)
       if (found) {
         finalImplementer = found
       } else {
@@ -145,14 +155,17 @@ export class ControllerRegistrar {
 
     // Validate that we have a valid implementer with handler method
     if (!this.hasHandlerMethod(finalImplementer)) {
-      throw new MissingHandlerError(`No handler method found for contract at path: ${contractPath.join('.')}`)
+      throw new MissingHandlerError(`No handler method found for route at path: ${routePath.join('.')}`)
     }
 
     // Create and return the procedure
     return (finalImplementer as { handler: (fn: Function) => WithORPCMetadata }).handler(
       ({ input, context }: { input: unknown; context: unknown }) => {
         const normalizedInput = this.inputExtractor.normalize(input)
-        return boundMethod(normalizedInput, context)
+        return boundMethod(normalizedInput, {
+          ...(typeof context === 'object' && context !== null ? context : {}),
+          access: accessMetadata,
+        })
       }
     )
   }

@@ -7,10 +7,10 @@
  * @example
  * ```typescript
  * import { createApp, corsPlugin, loggerPlugin, openapiPlugin } from '@outscope/nova'
- * import { contract } from './contracts'
+ * import { routes } from './routes'
  *
  * const app = await createApp({
- *   contract,
+ *   routes,
  *   controllers: 'src/features/**\/*.controller.ts',
  *   plugins: [
  *     corsPlugin({ origins: ['http://localhost:3000'] }),
@@ -37,7 +37,8 @@ export { ORPCHono } from './core/orpc-hono'
 // Decorators
 // ============================================================================
 
-export { Controller, Implement, Middleware, CatchErrors } from './infrastructure/decorators'
+export { Controller, Handle, Public, Auth, Permission, Middleware, CatchErrors } from './infrastructure/decorators'
+export { defineAccess, resolveAccessPolicy } from './domain/access'
 
 // ============================================================================
 // Plugins
@@ -150,6 +151,14 @@ export type {
   RouteMetadata,
   HonoMiddleware,
 } from './domain/types'
+
+export type {
+  AccessConfig,
+  AccessPolicy,
+  AccessMetadata,
+  EndpointAccessMetadata,
+  ResolvedAccessPolicy,
+} from './domain/access'
 
 // ============================================================================
 // Utilities

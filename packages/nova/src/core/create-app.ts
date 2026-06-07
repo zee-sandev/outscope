@@ -36,10 +36,10 @@ const DEFAULTS = {
  * @example
  * ```typescript
  * import { createApp, corsPlugin, loggerPlugin, openapiPlugin } from '@outscope/nova'
- * import { contract } from './contracts'
+ * import { routes } from './routes'
  *
  * const app = await createApp({
- *   contract,
+ *   routes,
  *   controllers: 'src/features/**\/*.controller.ts',
  *   plugins: [
  *     corsPlugin({ origins: ['http://localhost:3000'] }),
@@ -55,9 +55,9 @@ export async function createApp<TContext extends BaseORPCContext = BaseORPCConte
   config: AppConfig<TContext>
 ): Promise<OutscopeApp<TContext>> {
   const {
-    contract,
+    routes,
     controllers: controllersConfig,
-    producer,
+    access,
     createContext = defaultContextFactory as ContextFactory<TContext>,
     apiPrefix = DEFAULTS.apiPrefix,
     rpcPrefix = DEFAULTS.rpcPrefix,
@@ -80,7 +80,7 @@ export async function createApp<TContext extends BaseORPCContext = BaseORPCConte
   // 3. Initialize plugins (onInit phase)
   const initContext: Omit<PluginContext<TContext>, 'router'> = {
     app,
-    contract,
+    routes,
     config,
   }
 
@@ -123,8 +123,8 @@ export async function createApp<TContext extends BaseORPCContext = BaseORPCConte
 
   // 7. Setup ORPCHono and register controllers
   const orpcHono = new ORPCHono({
-    contract,
-    producer,
+    routes,
+    access,
   })
 
   const router = await orpcHono.applyMiddleware(app, {
@@ -218,7 +218,7 @@ export async function createApp<TContext extends BaseORPCContext = BaseORPCConte
   // 9. Call plugins (onReady phase)
   const readyContext: PluginContext<TContext> = {
     app,
-    contract,
+    routes,
     router,
     config,
   }
@@ -245,7 +245,7 @@ export async function createApp<TContext extends BaseORPCContext = BaseORPCConte
         schemaConverters: [new ZodToJsonSchemaConverter()],
       })
 
-      cachedOpenAPISpec = await generator.generate(contract, {
+      cachedOpenAPISpec = await generator.generate(routes, {
         info: {
           title: 'API',
           version: '1.0.0',
@@ -272,7 +272,7 @@ export async function createApp<TContext extends BaseORPCContext = BaseORPCConte
   const outscopeApp: OutscopeApp<TContext> = {
     hono: app,
     router,
-    contract,
+    routes,
     plugins,
 
     listen(port: number, callback?: (info: ServerInfo) => void) {

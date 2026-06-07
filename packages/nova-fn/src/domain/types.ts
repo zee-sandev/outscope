@@ -1,5 +1,6 @@
 import type { Context } from 'hono'
 import type { AnyContractProcedure, AnyContractRouter } from '@orpc/contract'
+import type { AccessConfig } from './access'
 
 /**
  * Core domain types for oRPC-Hono integration
@@ -11,7 +12,7 @@ import type { AnyContractProcedure, AnyContractRouter } from '@orpc/contract'
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
 /**
- * Route configuration from contract metadata
+ * Route configuration from route metadata
  */
 export interface RouteMetadata {
   /** HTTP method for the route */
@@ -21,12 +22,12 @@ export interface RouteMetadata {
 }
 
 /**
- * Metadata structure attached to oRPC contracts and procedures
+ * Metadata structure attached to oRPC route procedures
  */
 export interface ORPCMetadata<TInput = unknown, TOutput = unknown, TContext = unknown> {
   /** Route configuration if procedure is exposed as HTTP endpoint */
   route?: RouteMetadata
-  /** Reference to the contract procedure */
+  /** Reference to the route procedure */
   contract?: AnyContractProcedure
   /** Handler function for the procedure */
   handler?: ProcedureHandler<TInput, TOutput, TContext>
@@ -56,7 +57,7 @@ export type ProcedureHandler<TInput = unknown, TOutput = unknown, TContext = unk
  * Metadata for a controller method implementation
  */
 export interface ImplementationMetadata<TInput = unknown, TOutput = unknown, TContext = unknown> {
-  /** The contract procedure being implemented */
+  /** The route procedure being handled */
   contract: AnyContractProcedure
   /** Name of the method in the controller class */
   methodName: string | symbol
@@ -77,15 +78,14 @@ export interface ORPCHonoOptions<TContract extends AnyContractRouter = AnyContra
   interceptors?: HonoMiddleware[]
 
   /**
-   * Root contract router for automatic path resolution
+   * Root route router for automatic path resolution
    */
-  contract?: TContract
+  routes?: TContract
 
   /**
-   * oRPC producer (e.g., implement(contract).$context<ORPCContext>())
-   * Used as base implementer for all procedures
+   * Global access policy registry.
    */
-  producer?: unknown
+  access: AccessConfig
 }
 
 /**
@@ -139,8 +139,8 @@ export interface RouteRegistration {
  * Route registration configuration
  */
 export interface RouteRegisterConfig {
-  contractRouter?: AnyContractRouter
-  producer?: unknown
+  routes?: AnyContractRouter
+  access: AccessConfig
 }
 
 /**

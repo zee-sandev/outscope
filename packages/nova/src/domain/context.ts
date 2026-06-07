@@ -1,4 +1,5 @@
 import type { Context as HonoContext } from 'hono'
+import type { AccessMetadata } from './access'
 
 /**
  * Context types for oRPC-Hono framework
@@ -11,6 +12,8 @@ import type { Context as HonoContext } from 'hono'
 export interface BaseORPCContext {
   /** The Hono context for accessing request/response */
   honoContext: HonoContext
+  /** Access policy metadata for the current handler */
+  access?: AccessMetadata
 }
 
 /**

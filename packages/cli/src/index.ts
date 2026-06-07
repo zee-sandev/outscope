@@ -5,6 +5,7 @@ import pc from 'picocolors'
 import { createRequire } from 'module'
 import { createProject } from './commands/create.js'
 import { generate } from './commands/generate.js'
+import type { CreateProjectCliOptions } from './types/index.js'
 
 const require = createRequire(import.meta.url)
 const pkg = require('../package.json')
@@ -20,10 +21,14 @@ program
 program
   .command('create [project-name]')
   .description('Create a new Outscope project')
-  .option('-t, --template <template>', 'Template to use (beta)', 'beta')
-  .action(async (projectName: string | undefined) => {
+  .option('-t, --template <template>', 'Template to use')
+  .option('-y, --yes', 'Use defaults and skip interactive prompts')
+  .option('--install-dependencies', 'Install dependencies after scaffolding')
+  .option('--skip-repomix', 'Skip repomix detection and generation')
+  .option('--skip-outdated-check', 'Skip dependency freshness check')
+  .action(async (projectName: string | undefined, options: CreateProjectCliOptions) => {
     try {
-      await createProject(projectName)
+      await createProject(projectName, options)
     } catch (error) {
       console.error(pc.red('\n✗ Error creating project:'))
       console.error(error)

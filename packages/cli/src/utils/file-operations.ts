@@ -128,20 +128,23 @@ async function transformAndWriteFile(
 
     // Remove Prisma dependencies if not included
     if (!context.includePrisma) {
-      delete pkg.dependencies['@prisma/client']
-      delete pkg.dependencies['prisma']
-      delete pkg.scripts['db:generate']
-      delete pkg.scripts['db:push']
-      delete pkg.scripts['db:migrate']
-      delete pkg.scripts['db:studio']
+      delete pkg.dependencies?.['@prisma/client']
+      delete pkg.dependencies?.['prisma']
+      delete pkg.scripts?.['db:generate']
+      delete pkg.scripts?.['db:push']
+      delete pkg.scripts?.['db:migrate']
+      delete pkg.scripts?.['db:studio']
     }
 
     transformed = JSON.stringify(pkg, null, 2)
   } else if (fileName === 'README.md') {
     // Replace project name in README
     transformed = content
-      .replace(/@outscope\/orpc-hono Example/g, `${context.projectName}`)
-      .replace(/example-beta/g, context.projectName)
+      .replace(/@outscope\/nova Example/g, `${context.projectName}`)
+      .replace(/nova-api/g, context.projectName)
+      .replace(/nova-fn-api/g, context.projectName)
+      .replace(/turbo-nova-fn/g, context.projectName)
+      .replace(/turbo-nova/g, context.projectName)
   } else if (fileName === 'pnpm-workspace.yaml') {
     // Remove invalid parent references (e.g., ../../packages/*)
     transformed = content

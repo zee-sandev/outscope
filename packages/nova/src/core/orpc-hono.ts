@@ -18,14 +18,15 @@ import { ControllerRegistrar } from '../application/controller-registrar'
  *
  * @example
  * ```typescript
- * import { ORPCHono } from '@horn/orpc-hono'
+ * import { ORPCHono } from '@outscope/nova'
  * import { Hono } from 'hono'
- * import { contract } from './contracts'
+ * import { routes } from './routes'
  * import { UserController } from './controllers/user'
  *
  * const app = new Hono()
  * const orpcHono = new ORPCHono({
- *   contract,
+ *   routes,
+ *   access,
  * })
  *
  * const router = await orpcHono.applyMiddleware(app, {
@@ -35,21 +36,21 @@ import { ControllerRegistrar } from '../application/controller-registrar'
  */
 export class ORPCHono<TContract extends AnyContractRouter = AnyContractRouter> {
   private readonly interceptors: HonoMiddleware[]
-  private readonly contract?: TContract
-  private readonly producer?: unknown
+  private readonly routes?: TContract
+  private readonly access: ORPCHonoOptions<TContract>['access']
 
   /**
    * Create a new ORPCHono instance
    *
    * @param options - Configuration options
    * @param options.interceptors - Global middleware functions (default: [])
-   * @param options.contract - Root contract router for path resolution
-   * @param options.producer - oRPC producer (e.g., implement(contract).$context<ORPCContext>())
+   * @param options.routes - Root route router for path resolution
+   * @param options.access - Global access policy registry
    */
-  constructor(options: ORPCHonoOptions<TContract> = {}) {
+  constructor(options: ORPCHonoOptions<TContract>) {
     this.interceptors = options.interceptors ?? []
-    this.contract = options.contract
-    this.producer = options.producer
+    this.routes = options.routes
+    this.access = options.access
   }
 
   /**
@@ -59,7 +60,7 @@ export class ORPCHono<TContract extends AnyContractRouter = AnyContractRouter> {
    * It will:
    * 1. Apply global interceptors
    * 2. Register all controllers
-   * 3. Return a router structure matching your contracts
+   * 3. Return a router structure matching your routes
    *
    * @param app - Hono application instance
    * @param options - Registration options
@@ -112,8 +113,8 @@ export class ORPCHono<TContract extends AnyContractRouter = AnyContractRouter> {
     controllers: unknown[]
   ): Promise<AnyContractRouter> {
     const registrar = new ControllerRegistrar({
-      contractRouter: this.contract as AnyContractRouter,
-      producer: this.producer,
+      routes: this.routes as AnyContractRouter,
+      access: this.access,
     })
 
     const router: AnyContractRouter = {} as AnyContractRouter
@@ -156,12 +157,12 @@ export class ORPCHono<TContract extends AnyContractRouter = AnyContractRouter> {
   }
 
   /**
-   * Get the configured contract router
+   * Get the configured route router
    *
-   * @returns The contract router if configured
+   * @returns The route router if configured
    */
-  getContract(): TContract | undefined {
-    return this.contract
+  getRoutes(): TContract | undefined {
+    return this.routes
   }
 
   /**
@@ -173,12 +174,4 @@ export class ORPCHono<TContract extends AnyContractRouter = AnyContractRouter> {
     return [...this.interceptors]
   }
 
-  /**
-   * Get the configured producer
-   *
-   * @returns The producer if configured
-   */
-  getProducer(): unknown {
-    return this.producer
-  }
 }

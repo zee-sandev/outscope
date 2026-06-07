@@ -4,20 +4,21 @@ import type { AnyContractRouter } from '@orpc/contract'
 import { ORPCHono } from './orpc-hono'
 import { defaultContextFactory } from '../domain/context'
 import type { BaseORPCContext, ContextFactory } from '../domain/context'
-import type { OperationMap } from '../functional/define-operations'
+import type { HandlerMap } from '../functional/define-handlers'
 import type { Plugin, PluginContext, ServerInfo } from '../plugins/types'
 import type { HonoMiddleware } from '../domain/types'
+import type { AccessConfig } from '../domain/access'
 
 /**
  * Application configuration for the lite/functional version
  */
 export interface AppConfig<TContext extends BaseORPCContext = BaseORPCContext> {
-  /** Root contract router */
-  contract: AnyContractRouter
-  /** oRPC producer (e.g., implement(contract).$context<ORPCContext>()) */
-  producer?: unknown
-  /** Operation map — replaces controllers */
-  operations: OperationMap
+  /** Root route router */
+  routes: AnyContractRouter
+  /** Global access policy registry */
+  access: AccessConfig
+  /** Handler map */
+  handlers: HandlerMap
   /** Factory function to create request context */
   createContext?: ContextFactory<TContext>
   /** Prefix for OpenAPI/REST routes */
@@ -45,8 +46,8 @@ export interface OutscopeApp<TContext extends BaseORPCContext = BaseORPCContext>
   hono: Hono
   /** oRPC router structure */
   router: any
-  /** Contract router */
-  contract: AnyContractRouter
+  /** Route router */
+  routes: AnyContractRouter
   /** Active plugins */
   plugins: Plugin[]
   /** Start Node.js server */
@@ -57,8 +58,8 @@ export interface OutscopeApp<TContext extends BaseORPCContext = BaseORPCContext>
   fetch(request: Request, env?: unknown, executionCtx?: unknown): Promise<Response>
   /** Get cached OpenAPI spec */
   getOpenAPISpec(): Promise<object>
-  /** Register additional operations at runtime */
-  registerOperations(operations: OperationMap): Promise<void>
+  /** Register additional handlers at runtime */
+  registerHandlers(handlers: HandlerMap): Promise<void>
   /** Graceful shutdown */
   shutdown(): Promise<void>
 }
@@ -69,7 +70,7 @@ const DEFAULTS = {
 } as const
 
 /**
- * Create a new Outscope application with functional operations (lite version).
+ * Create a new Outscope application with functional handlers.
  *
  * No decorators, no reflect-metadata, no glob loading.
  * Just pure functions and explicit registration.
@@ -79,11 +80,11 @@ const DEFAULTS = {
  * import { createApp, corsPlugin } from '@outscope/nova-fn'
  *
  * const app = await createApp({
- *   contract,
- *   producer: pub,
- *   operations: {
- *     auth: authOperations,
- *     projects: projectOperations,
+ *   routes,
+ *   access,
+ *   handlers: {
+ *     auth: authHandlers,
+ *     projects: projectHandlers,
  *   },
  *   plugins: [corsPlugin({ origins: ['http://localhost:3000'] })],
  * })
@@ -95,9 +96,9 @@ export async function createApp<TContext extends BaseORPCContext = BaseORPCConte
   config: AppConfig<TContext>,
 ): Promise<OutscopeApp<TContext>> {
   const {
-    contract,
-    operations,
-    producer,
+    routes,
+    handlers,
+    access,
     createContext = defaultContextFactory as ContextFactory<TContext>,
     apiPrefix = DEFAULTS.apiPrefix,
     rpcPrefix = DEFAULTS.rpcPrefix,
@@ -120,7 +121,7 @@ export async function createApp<TContext extends BaseORPCContext = BaseORPCConte
   // 3. Initialize plugins (onInit phase)
   const initContext = {
     app,
-    contract,
+    routes,
     config,
   } as Omit<PluginContext, 'router'>
 
@@ -142,13 +143,13 @@ export async function createApp<TContext extends BaseORPCContext = BaseORPCConte
     app.use('*', interceptor)
   }
 
-  // 6. Setup ORPCHono and register operations (replaces controller loading)
+  // 6. Setup ORPCHono and register handlers
   const orpcHono = new ORPCHono({
-    contract,
-    producer,
+    routes,
+    access,
   })
 
-  const router = await orpcHono.applyOperations(app, { operations })
+  const router = await orpcHono.applyHandlers(app, { handlers })
 
   // 7. Create handlers for API and RPC routes
   const setupHandlers = async () => {
@@ -234,7 +235,7 @@ export async function createApp<TContext extends BaseORPCContext = BaseORPCConte
   // 8. Call plugins (onReady phase)
   const readyContext = {
     app,
-    contract,
+    routes,
     router,
     config,
   } as PluginContext
@@ -261,7 +262,7 @@ export async function createApp<TContext extends BaseORPCContext = BaseORPCConte
         schemaConverters: [new ZodToJsonSchemaConverter()],
       })
 
-      cachedOpenAPISpec = await generator.generate(contract, {
+      cachedOpenAPISpec = await generator.generate(routes, {
         info: {
           title: 'API',
           version: '1.0.0',
@@ -288,7 +289,7 @@ export async function createApp<TContext extends BaseORPCContext = BaseORPCConte
   const outscopeApp: OutscopeApp<TContext> = {
     hono: app,
     router,
-    contract,
+    routes,
     plugins,
 
     listen(port: number, callback?: (info: ServerInfo) => void) {
@@ -333,9 +334,9 @@ export async function createApp<TContext extends BaseORPCContext = BaseORPCConte
 
     getOpenAPISpec,
 
-    async registerOperations(additionalOperations: OperationMap) {
-      const additionalRouter = await orpcHono.applyOperations(app, {
-        operations: additionalOperations,
+    async registerHandlers(additionalHandlers: HandlerMap) {
+      const additionalRouter = await orpcHono.applyHandlers(app, {
+        handlers: additionalHandlers,
       })
       Object.assign(router, additionalRouter)
     },
