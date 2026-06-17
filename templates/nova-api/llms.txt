@@ -1,0 +1,9 @@
+# Nova API
+
+Decorator Nova 2.0 project. Use `routes`, `access`, and `@Handle`.
+
+- Routes live under `src/routes`.
+- Access is configured with `defineAccess`.
+- Controller methods use `@Public()`, `@Auth()`, or `@Permission()` plus `@Handle(...)`.
+- Do not generate `src/contracts`, `operations`, or `@Implement`.
+

@@ -1,0 +1,35 @@
+# @outscope Nova
+
+Nova builds type-safe Hono + oRPC APIs.
+
+## Read First
+
+- `docs/ai/nova-patterns.md`: canonical patterns for code agents.
+- `QUICKSTART.md`: short human guide to Nova 2.0.
+- `MIGRATION.md`: allowed place for old 1.x vocabulary.
+- `templates/*/AGENTS.md`: instructions copied into scaffolded projects.
+
+## Canonical Vocabulary
+
+```txt
+routes   = API route/schema definition
+access   = global producer and policy registry
+handlers = function implementations for @outscope/nova-fn
+@Handle  = controller method binding for @outscope/nova
+```
+
+## Do
+
+- Use `routes`, `access`, `handlers`, and `@Handle`.
+- Put app route definitions under `src/routes`.
+- Use `defineAccess` once near app startup.
+- Use `producer` only inside `access.policies.*.producer`.
+- Prefer `@outscope/nova` for decorators and `@outscope/nova-fn` for functional handlers.
+
+## Do Not
+
+- Do not generate public examples with `operations` or `@Implement`.
+- Do not create `src/contracts` in new Nova 2.0 apps.
+- Do not make `@Middleware` the primary access API.
+- Do not import from `dist`, generated output, or package internals.
+

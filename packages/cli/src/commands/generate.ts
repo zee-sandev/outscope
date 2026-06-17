@@ -6,7 +6,7 @@ import {
   generateController,
   generateService,
   generateRepository,
-  generateContract,
+  generateRoutes,
   generateSchema,
   generateFeatureIndex,
   writeGeneratedFile,
@@ -70,7 +70,7 @@ export async function generate(type?: string, name?: string): Promise<void> {
       console.log(pc.cyan(`  ${featurePath}/${toKebabCase(options.name)}.service.ts`))
       console.log(pc.cyan(`  ${featurePath}/${toKebabCase(options.name)}.repository.ts`))
       console.log(pc.cyan(`  ${featurePath}/index.ts`))
-      console.log(pc.cyan(`  src/contracts/${toKebabCase(options.name)}.ts`))
+      console.log(pc.cyan(`  src/routes/${toKebabCase(options.name)}.ts`))
       console.log(pc.cyan(`  src/schemas/${toKebabCase(options.name)}.ts`))
     } else {
       const featurePath = `src/features/${toKebabCase(options.feature!)}`
@@ -79,7 +79,7 @@ export async function generate(type?: string, name?: string): Promise<void> {
       )
     }
 
-    console.log(pc.yellow('\n💡 Don\'t forget to export your routes from src/contracts/index.ts\n'))
+    console.log(pc.yellow('\n💡 Don\'t forget to export your routes from src/routes/index.ts\n'))
   } catch (error) {
     spinner.fail(pc.red('Failed to generate files'))
     console.error(error)
@@ -88,7 +88,7 @@ export async function generate(type?: string, name?: string): Promise<void> {
 }
 
 /**
- * Generate a complete feature (controller, service, repository, contract, schema)
+ * Generate a complete feature (controller, service, repository, routes, schema)
  */
 async function generateFeature(cwd: string, name: string): Promise<void> {
   const kebabName = toKebabCase(name)
@@ -114,10 +114,10 @@ async function generateFeature(cwd: string, name: string): Promise<void> {
   const indexContent = generateFeatureIndex(name)
   await writeGeneratedFile(indexPath, indexContent)
 
-  // Generate contract
-  const contractPath = join(cwd, 'src', 'contracts', `${kebabName}.ts`)
-  const contractContent = generateContract(name)
-  await writeGeneratedFile(contractPath, contractContent)
+  // Generate routes
+  const routesPath = join(cwd, 'src', 'routes', `${kebabName}.ts`)
+  const routesContent = generateRoutes(name)
+  await writeGeneratedFile(routesPath, routesContent)
 
   // Generate schema
   const schemaPath = join(cwd, 'src', 'schemas', `${kebabName}.ts`)

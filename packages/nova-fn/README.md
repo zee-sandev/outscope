@@ -19,32 +19,37 @@ pnpm add @outscope/nova-fn hono @orpc/contract @orpc/server zod
 ## App Setup
 
 ```ts
-import { createApp, defineAccess, defineHandlers, handle } from '@outscope/nova-fn'
-import { implement } from '@orpc/server'
-import { routes } from './contracts'
+import {
+  createApp,
+  defineAccess,
+  defineHandlers,
+  handle,
+} from "@outscope/nova-fn";
+import { implement } from "@orpc/server";
+import { routes } from "./routes";
 
-const pub = implement(routes).$context<AppContext>()
-const authed = pub.use(authMiddleware)
-const permissioned = authed.use(permissionMiddleware)
+const pub = implement(routes).$context<AppContext>();
+const authed = pub.use(authMiddleware);
+const permissioned = authed.use(permissionMiddleware);
 
 const access = defineAccess({
-  default: 'public',
+  default: "public",
   policies: {
     public: { producer: pub },
     auth: { producer: authed },
     permission: { producer: permissioned },
   },
-})
+});
 
 export const planetHandlers = defineHandlers(routes.planet, {
   list: handle.public(async (input, ctx) => {
-    return planetService.list(input)
+    return planetService.list(input);
   }),
 
-  create: handle.permission('planet:create', async (input, ctx) => {
-    return planetService.create(input, ctx.user)
+  create: handle.permission("planet:create", async (input, ctx) => {
+    return planetService.create(input, ctx.user);
   }),
-})
+});
 
 const app = await createApp({
   routes,
@@ -52,7 +57,7 @@ const app = await createApp({
   handlers: {
     planet: planetHandlers,
   },
-})
+});
 ```
 
 ## Access Metadata
@@ -61,9 +66,9 @@ Handlers and middleware receive access metadata through context:
 
 ```ts
 ctx.access = {
-  policy: 'permission',
-  permissions: ['planet:create'],
-}
+  policy: "permission",
+  permissions: ["planet:create"],
+};
 ```
 
 ## Public API
@@ -76,6 +81,10 @@ ctx.access = {
 - `handle.permission`
 - `handle.custom`
 - `corsPlugin`, `loggerPlugin`, `openapiPlugin`, `errorHandlerPlugin`
+
+## For Code Agents
+
+When generating Nova functional apps, create route definitions under `src/routes`, configure `defineAccess` once, and implement endpoints with `defineHandlers(routes.feature, { action: handle.public(...) })`. Do not generate `src/contracts`, `operations`, controllers, or `@Implement`.
 
 ## Migration
 

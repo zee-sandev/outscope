@@ -43,7 +43,7 @@ program
   .description(
     'Generate code files\n' +
       '  Available types:\n' +
-      '    - feature: Complete feature module (controller + service + repository + contracts + schema)\n' +
+      '    - feature: Complete feature module (controller + service + repository + routes + schema)\n' +
       '    - controller: Controller file only\n' +
       '    - service: Service file only\n' +
       '    - repository: Repository file only'

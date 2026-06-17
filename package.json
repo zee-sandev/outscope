@@ -9,7 +9,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "test": "pnpm --filter @outscope/nova test && pnpm --filter @outscope/nova-fn test && pnpm --filter @outscope/cli test",
-    "audit:architecture": "depcruise --config .dependency-cruiser.cjs --exclude \"(^|/)(templates|generated|dist|node_modules)(/|$)\" \"packages/nova/src/**/*.ts\" \"packages/nova-fn/src/**/*.ts\" \"packages/cli/src/**/*.ts\" \"examples/*/src/**/*.ts\"",
+    "audit:architecture": "depcruise --config .dependency-cruiser.cjs --exclude \"(^|/)(templates|generated|dist|node_modules)(/|$)\" \"packages/nova/src/**/*.ts\" \"packages/nova-fn/src/**/*.ts\" \"packages/cli/src/**/*.ts\" \"examples/*/src/**/*.ts\" && pnpm audit:agent-patterns",
+    "audit:agent-patterns": "node scripts/audit-agent-patterns.mjs",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm build:packages && changeset publish"

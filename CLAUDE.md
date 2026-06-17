@@ -27,17 +27,19 @@ pnpm audit:architecture
 
 ## Preferred Patterns
 
+Before generating app code, read `docs/ai/nova-patterns.md`. It is the canonical short guide for code agents.
+
 Use `defineAccess` once at app startup:
 
 ```ts
 const access = defineAccess({
-  default: 'public',
+  default: "public",
   policies: {
     public: { producer: pub },
     auth: { producer: authed },
     permission: { producer: permissioned },
   },
-})
+});
 ```
 
 Use `@Handle` with access decorators in `@outscope/nova`:
@@ -57,8 +59,8 @@ Use `defineHandlers` and `handle` in `@outscope/nova-fn`:
 ```ts
 export const userHandlers = defineHandlers(routes.user, {
   get: handle.public(async (input, ctx) => {}),
-  update: handle.permission('user:update', async (input, ctx) => {}),
-})
+  update: handle.permission("user:update", async (input, ctx) => {}),
+});
 ```
 
 Do not introduce new public examples using `contract`, `producer`, `operations`, or `@Implement`. Those terms are only valid in migration notes or low-level implementation comments.

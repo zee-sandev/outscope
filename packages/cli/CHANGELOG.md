@@ -1,5 +1,11 @@
 # @outscope/cli
 
+## 2.0.1
+
+### Patch Changes
+
+- Generate Nova 2.0 route files under `src/routes` and add agent-facing guidance to scaffolded templates.
+
 ## 2.0.0
 
 ### Major Changes

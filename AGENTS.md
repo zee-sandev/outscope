@@ -61,23 +61,25 @@ The example API runs on `http://localhost:3000`.
 
 ## Nova 2.0 Patterns
 
+Before generating app code, read `docs/ai/nova-patterns.md`. It is the canonical short guide for code agents.
+
 Decorator apps use `routes`, `access`, and controllers:
 
 ```ts
 const access = defineAccess({
-  default: 'public',
+  default: "public",
   policies: {
     public: { producer: pub },
     auth: { producer: authed },
     permission: { producer: permissioned },
   },
-})
+});
 
 await createApp({
   routes,
   access,
-  controllers: 'src/features/**/*.controller.ts',
-})
+  controllers: "src/features/**/*.controller.ts",
+});
 ```
 
 Controller methods use access decorators plus `@Handle`:
@@ -89,7 +91,7 @@ export class PlanetController {
   @Handle(routes.planet.list)
   list(input, ctx) {}
 
-  @Permission('planet:create')
+  @Permission("planet:create")
   @Handle(routes.planet.create)
   create(input, ctx) {}
 }
@@ -100,8 +102,8 @@ Functional apps use `defineHandlers` and `handle`:
 ```ts
 export const planetHandlers = defineHandlers(routes.planet, {
   list: handle.public(async (input, ctx) => {}),
-  create: handle.permission('planet:create', async (input, ctx) => {}),
-})
+  create: handle.permission("planet:create", async (input, ctx) => {}),
+});
 ```
 
 ## Architecture Rules

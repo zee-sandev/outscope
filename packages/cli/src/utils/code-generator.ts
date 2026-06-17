@@ -36,7 +36,7 @@ export function generateController(name: string, featureName: string): string {
   const routeName = toCamelCase(name)
 
   return `import { Controller, Handle, Public } from '@outscope/nova'
-import { ${routeName} } from '@contracts/${toKebabCase(featureName)}'
+import { ${routeName}Routes } from '@routes/${toKebabCase(featureName)}'
 import { ${routeName}Service } from './${toKebabCase(name)}.service'
 import type { ORPCContext } from '@libs/orpc/context'
 
@@ -45,7 +45,7 @@ export class ${className} {
   // TODO: Implement route handlers
   // Example:
   // @Public()
-  // @Handle(${routeName}.list)
+  // @Handle(${routeName}Routes.list)
   // async list(input: any, context: ORPCContext): Promise<any> {
   //   return ${routeName}Service.list(input)
   // }
@@ -110,10 +110,10 @@ export const ${repositoryName} = {
 }
 
 /**
- * Generate contract file content
+ * Generate routes file content
  */
-export function generateContract(name: string): string {
-  const contractName = toCamelCase(name)
+export function generateRoutes(name: string): string {
+  const routesName = `${toCamelCase(name)}Routes`
   const pascalName = toPascalCase(name)
 
   return `import { oc } from '@orpc/contract'
@@ -145,9 +145,9 @@ export const list = oc
     total: z.number(),
   }))
 
-export const ${contractName} = {
+export const ${routesName} = {
   list,
-  // TODO: Add more contract methods (get, create, update, delete)
+  // TODO: Add more route methods (get, create, update, delete)
 }
 `
 }

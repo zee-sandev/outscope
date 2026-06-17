@@ -1,0 +1,9 @@
+# Nova Fn API
+
+Functional Nova 2.0 project. Use `routes`, `access`, `defineHandlers`, and `handle`.
+
+- Routes live under `src/routes`.
+- Access is configured with `defineAccess`.
+- Handlers use `handle.public`, `handle.auth`, or `handle.permission(...)`.
+- Do not generate `src/contracts`, `operations`, controllers, or `@Implement`.
+

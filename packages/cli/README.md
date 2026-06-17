@@ -60,21 +60,22 @@ src/features/planets/
   planet.service.ts
   planet.repository.ts
   index.ts
-src/contracts/planet.ts
+src/routes/planet.ts
 src/schemas/planet.ts
 ```
 
 Generated controllers use Nova 2.0 APIs:
 
 ```ts
-import { Controller, Handle, Public } from '@outscope/nova'
+import { Controller, Handle, Public } from "@outscope/nova";
+import { planetRoutes } from "@routes/planets";
 
 @Controller()
 export class PlanetController {
   @Public()
-  @Handle(planet.list)
+  @Handle(planetRoutes.list)
   list(input, ctx) {
-    return planetService.list(input)
+    return planetService.list(input);
   }
 }
 ```

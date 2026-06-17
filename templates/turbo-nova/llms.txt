@@ -1,0 +1,9 @@
+# Turbo Nova
+
+Decorator Nova 2.0 turborepo. Use `routes`, `access`, and `@Handle`.
+
+- Shared routes live in `packages/routes`.
+- Shared schemas live in `packages/schemas`.
+- API controllers live in `apps/api`.
+- Do not generate contracts, operations, or `@Implement`.
+

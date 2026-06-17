@@ -47,47 +47,47 @@ CLI scaffolding still downloads from GitHub. The selected template maps to one o
 ## Decorator API
 
 ```ts
-import { createApp, defineAccess, corsPlugin } from '@outscope/nova'
-import { implement } from '@orpc/server'
-import { routes } from './contracts'
+import { createApp, defineAccess, corsPlugin } from "@outscope/nova";
+import { implement } from "@orpc/server";
+import { routes } from "./routes";
 
-const pub = implement(routes).$context<AppContext>()
-const authed = pub.use(authMiddleware)
-const permissioned = authed.use(permissionMiddleware)
+const pub = implement(routes).$context<AppContext>();
+const authed = pub.use(authMiddleware);
+const permissioned = authed.use(permissionMiddleware);
 
 const access = defineAccess({
-  default: 'public',
+  default: "public",
   policies: {
     public: { producer: pub },
     auth: { producer: authed },
     permission: { producer: permissioned },
   },
-})
+});
 
 const app = await createApp({
   routes,
   access,
-  controllers: 'src/features/**/*.controller.ts',
-  plugins: [corsPlugin({ origins: ['http://localhost:3000'] })],
-})
+  controllers: "src/features/**/*.controller.ts",
+  plugins: [corsPlugin({ origins: ["http://localhost:3000"] })],
+});
 ```
 
 ```ts
-import { Controller, Handle, Permission, Public } from '@outscope/nova'
-import { routes } from '../../contracts'
+import { Controller, Handle, Permission, Public } from "@outscope/nova";
+import { routes } from "../../routes";
 
 @Controller()
 export class PlanetController {
   @Public()
   @Handle(routes.planet.list)
   list(input: ListPlanetsInput, ctx: AppContext) {
-    return planetService.list(input)
+    return planetService.list(input);
   }
 
-  @Permission('planet:create')
+  @Permission("planet:create")
   @Handle(routes.planet.create)
   create(input: CreatePlanetInput, ctx: AppContextWithUser) {
-    return planetService.create(input, ctx.user)
+    return planetService.create(input, ctx.user);
   }
 }
 ```
@@ -95,17 +95,22 @@ export class PlanetController {
 ## Functional API
 
 ```ts
-import { createApp, defineAccess, defineHandlers, handle } from '@outscope/nova-fn'
+import {
+  createApp,
+  defineAccess,
+  defineHandlers,
+  handle,
+} from "@outscope/nova-fn";
 
 export const planetHandlers = defineHandlers(routes.planet, {
   list: handle.public(async (input, ctx) => {
-    return planetService.list(input)
+    return planetService.list(input);
   }),
 
-  create: handle.permission('planet:create', async (input, ctx) => {
-    return planetService.create(input, ctx.user)
+  create: handle.permission("planet:create", async (input, ctx) => {
+    return planetService.create(input, ctx.user);
   }),
-})
+});
 
 const app = await createApp({
   routes,
@@ -113,7 +118,7 @@ const app = await createApp({
   handlers: {
     planet: planetHandlers,
   },
-})
+});
 ```
 
 ## Development
@@ -127,6 +132,10 @@ pnpm audit:architecture
 ```
 
 `pnpm audit:architecture` uses `dependency-cruiser` to enforce package boundaries and detect circular dependencies.
+
+## For Code Agents
+
+Read [docs/ai/nova-patterns.md](./docs/ai/nova-patterns.md) before generating Nova app code. New code should use `routes`, `access`, `handlers`, and `@Handle`. Do not create `src/contracts`, `operations`, or `@Implement` in public examples or scaffold output.
 
 ## Migration
 

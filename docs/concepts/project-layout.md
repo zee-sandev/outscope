@@ -22,3 +22,5 @@ Current examples:
 `templates/*` contains standalone scaffold sources used by `@outscope/cli`.
 
 Templates are not part of the root workspace. The CLI downloads this repository from GitHub, extracts the selected `templates/*` path, and copies it into the user's target project.
+
+Each template includes `AGENTS.md` and `llms.txt` so code agents inherit the Nova 2.0 vocabulary and do not fall back to old public names.
