@@ -19,68 +19,68 @@ The server runs on `http://localhost:3000`.
 ## Create Routes
 
 ```ts
-import { oc } from "@orpc/contract";
-import { z } from "zod";
+import { oc } from '@orpc/contract'
+import { z } from 'zod'
 
 export const getUser = oc
-  .route({ method: "GET", path: "/users/:id" })
+  .route({ method: 'GET', path: '/users/:id' })
   .input(z.object({ id: z.string() }))
-  .output(z.object({ id: z.string(), name: z.string() }));
+  .output(z.object({ id: z.string(), name: z.string() }))
 
 export const routes = {
   user: {
     get: getUser,
   },
-};
+}
 ```
 
 ## Configure Access
 
 ```ts
-import { defineAccess } from "@outscope/nova";
-import { implement } from "@orpc/server";
-import { routes } from "./routes";
+import { defineAccess } from '@outscope/nova'
+import { implement } from '@orpc/server'
+import { routes } from './routes'
 
-const pub = implement(routes).$context<AppContext>();
-const authed = pub.use(authMiddleware);
-const permissioned = authed.use(permissionMiddleware);
+const pub = implement(routes).$context<AppContext>()
+const authed = pub.use(authMiddleware)
+const permissioned = authed.use(permissionMiddleware)
 
 export const access = defineAccess({
-  default: "public",
+  default: 'public',
   policies: {
     public: { producer: pub },
     auth: { producer: authed },
     permission: { producer: permissioned },
   },
-});
+})
 ```
 
 `ctx.access` is available inside handlers and access middleware:
 
 ```ts
 ctx.access = {
-  policy: "permission",
-  permissions: ["user:update"],
-};
+  policy: 'permission',
+  permissions: ['user:update'],
+}
 ```
 
 ## Decorator Style
 
 ```ts
-import { Controller, Handle, Permission, Public } from "@outscope/nova";
+import { Controller, Handle, Permission, Public } from '@outscope/nova'
 
 @Controller()
 export class UserController {
   @Public()
   @Handle(routes.user.get)
   get(input: GetUserInput, ctx: AppContext) {
-    return userService.get(input.id);
+    return userService.get(input.id)
   }
 
-  @Permission("user:update")
+  @Permission('user:update')
   @Handle(routes.user.update)
   update(input: UpdateUserInput, ctx: AppContextWithUser) {
-    return userService.update(input, ctx.user);
+    return userService.update(input, ctx.user)
   }
 }
 ```
@@ -88,17 +88,19 @@ export class UserController {
 ## Functional Style
 
 ```ts
-import { defineHandlers, handle } from "@outscope/nova-fn";
+import { defineHandle, defineHandlers } from '@outscope/nova-fn'
+
+const handle = defineHandle(access)
 
 export const userHandlers = defineHandlers(routes.user, {
   get: handle.public(async (input, ctx) => {
-    return userService.get(input.id);
+    return userService.get(input.id)
   }),
 
-  update: handle.permission("user:update", async (input, ctx) => {
-    return userService.update(input, ctx.user);
+  update: handle.permission('user:update', async (input, ctx) => {
+    return userService.update(input, ctx.user)
   }),
-});
+})
 ```
 
 ## Scaffold a Project

@@ -23,6 +23,7 @@ handlers = function implementations
 - Add route definitions to `packages/routes`.
 - Add shared input/output schemas to `packages/schemas`.
 - Configure `defineAccess` once in `apps/api`.
+- Derive handlers with `const handle = defineHandle(access)`.
 - Implement endpoints with `defineHandlers(routes.feature, { ... })`.
 - Use `handle.public`, `handle.auth`, or `handle.permission('scope:name')`.
 - Keep `producer` only inside `access.policies.*.producer`.

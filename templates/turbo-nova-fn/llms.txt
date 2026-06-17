@@ -5,5 +5,5 @@ Functional Nova 2.0 turborepo. Use `routes`, `access`, `defineHandlers`, and `ha
 - Shared routes live in `packages/routes`.
 - Shared schemas live in `packages/schemas`.
 - API handlers live in `apps/api`.
+- Handler helpers are derived with `defineHandle(access)`.
 - Do not generate contracts, operations, controllers, or `@Implement`.
-

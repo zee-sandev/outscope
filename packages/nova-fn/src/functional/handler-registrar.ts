@@ -6,7 +6,10 @@ import { MissingHandlerError } from '../domain/errors.js'
 import { ContractResolver } from '../application/contract-resolver.js'
 import { InputExtractor } from '../application/input-extractor.js'
 import { normalizeError } from '../domain/errors.js'
-import { createAccessMiddleware, resolveAccessPolicy } from '../domain/access.js'
+import {
+  createAccessMiddleware,
+  resolveAccessPolicy,
+} from '../domain/access.js'
 
 export class HandlerRegistrar {
   private readonly config: RouteRegisterConfig
@@ -21,7 +24,12 @@ export class HandlerRegistrar {
 
   register(handlers: HandlerMap): AnyContractRouter {
     const router: Record<string, unknown> = {}
-    this.walkHandlers(handlers, [], this.config.routes as Record<string, unknown>, router)
+    this.walkHandlers(
+      handlers,
+      [],
+      this.config.routes as Record<string, unknown>,
+      router,
+    )
     return router as AnyContractRouter
   }
 
@@ -35,7 +43,9 @@ export class HandlerRegistrar {
       if (this.isHandlerDef(value)) {
         const route = routeNode?.[key]
         if (!route) {
-          throw new MissingHandlerError(`Route path ${[...parentPath, key].join('.')} not found`)
+          throw new MissingHandlerError(
+            `Route path ${[...parentPath, key].join('.')} not found`,
+          )
         }
         this.registerHandler(route, value, router)
       } else {
@@ -49,22 +59,39 @@ export class HandlerRegistrar {
     }
   }
 
-  private registerHandler(route: unknown, handlerDef: HandlerDef, router: Record<string, unknown>): void {
+  private registerHandler(
+    route: unknown,
+    handlerDef: HandlerDef,
+    router: Record<string, unknown>,
+  ): void {
     const { handler, middlewares, catchErrors, access } = handlerDef
     const routePath = this.config.routes
       ? this.contractResolver.findContractPath(this.config.routes, route)
       : []
     const accessPolicy = resolveAccessPolicy(access, this.config.access)
 
-    let implementer: unknown = accessPolicy.producer || implement(route as AnyContractRouter)
+    let implementer: unknown =
+      accessPolicy.producer || implement(route as AnyContractRouter)
 
     if (this.hasUseMethod(implementer)) {
-      implementer = (implementer as { use: (m: unknown) => unknown }).use(createAccessMiddleware(accessPolicy.metadata))
+      implementer = (implementer as { use: (m: unknown) => unknown }).use(
+        createAccessMiddleware(accessPolicy.metadata),
+      )
+    }
+
+    for (const middleware of accessPolicy.middlewares) {
+      if (this.hasUseMethod(implementer)) {
+        implementer = (implementer as { use: (m: unknown) => unknown }).use(
+          middleware,
+        )
+      }
     }
 
     for (const middleware of middlewares) {
       if (this.hasUseMethod(implementer)) {
-        implementer = (implementer as { use: (m: unknown) => unknown }).use(middleware)
+        implementer = (implementer as { use: (m: unknown) => unknown }).use(
+          middleware,
+        )
       }
     }
 
@@ -75,7 +102,9 @@ export class HandlerRegistrar {
         if (current && typeof current === 'object' && pathKey in current) {
           current = current[pathKey]
         } else {
-          throw new MissingHandlerError(`Route path ${routePath.join('.')} not found in access producer`)
+          throw new MissingHandlerError(
+            `Route path ${routePath.join('.')} not found in access producer`,
+          )
         }
       }
       finalImplementer = current
@@ -85,7 +114,9 @@ export class HandlerRegistrar {
     }
 
     if (!this.hasHandlerMethod(finalImplementer)) {
-      throw new MissingHandlerError(`No handler method found for route at path: ${routePath.join('.')}`)
+      throw new MissingHandlerError(
+        `No handler method found for route at path: ${routePath.join('.')}`,
+      )
     }
 
     const wrappedHandler = catchErrors
@@ -117,7 +148,10 @@ export class HandlerRegistrar {
     }
   }
 
-  private buildRouterStructure(routePath: string[], procedure: WithORPCMetadata): Record<string, unknown> {
+  private buildRouterStructure(
+    routePath: string[],
+    procedure: WithORPCMetadata,
+  ): Record<string, unknown> {
     const result: Record<string, unknown> = {}
     let current = result
 
@@ -133,9 +167,16 @@ export class HandlerRegistrar {
     return result
   }
 
-  private deepMerge(target: Record<string, any>, source: Record<string, any>): void {
+  private deepMerge(
+    target: Record<string, any>,
+    source: Record<string, any>,
+  ): void {
     for (const key in source) {
-      if (typeof source[key] === 'object' && source[key] !== null && !('~orpc' in source[key])) {
+      if (
+        typeof source[key] === 'object' &&
+        source[key] !== null &&
+        !('~orpc' in source[key])
+      ) {
         if (!target[key]) target[key] = {}
         this.deepMerge(target[key], source[key])
       } else {
@@ -155,7 +196,9 @@ export class HandlerRegistrar {
     )
   }
 
-  private hasUseMethod(implementer: unknown): implementer is { use: (middleware: unknown) => unknown } {
+  private hasUseMethod(
+    implementer: unknown,
+  ): implementer is { use: (middleware: unknown) => unknown } {
     if (typeof implementer !== 'object' || implementer === null) return false
     try {
       return typeof (implementer as { use: unknown }).use === 'function'

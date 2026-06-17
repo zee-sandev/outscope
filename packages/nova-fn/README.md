@@ -22,34 +22,40 @@ pnpm add @outscope/nova-fn hono @orpc/contract @orpc/server zod
 import {
   createApp,
   defineAccess,
+  defineHandle,
   defineHandlers,
-  handle,
-} from "@outscope/nova-fn";
-import { implement } from "@orpc/server";
-import { routes } from "./routes";
+  type AccessMetadata,
+} from '@outscope/nova-fn'
+import { implement } from '@orpc/server'
+import { routes } from './routes'
 
-const pub = implement(routes).$context<AppContext>();
-const authed = pub.use(authMiddleware);
-const permissioned = authed.use(permissionMiddleware);
+const pub = implement(routes).$context<AppContext>()
 
 const access = defineAccess({
-  default: "public",
+  default: 'public',
   policies: {
-    public: { producer: pub },
-    auth: { producer: authed },
-    permission: { producer: permissioned },
+    public: { kind: 'plain', producer: pub },
+    auth: { kind: 'plain', uses: 'public', middleware: requireAuth() },
+    permission: {
+      kind: 'permission',
+      uses: 'auth',
+      middleware: (metadata: AccessMetadata) =>
+        requirePermission(metadata.permissions ?? []),
+    },
   },
-});
+})
+
+const handle = defineHandle(access)
 
 export const planetHandlers = defineHandlers(routes.planet, {
   list: handle.public(async (input, ctx) => {
-    return planetService.list(input);
+    return planetService.list(input)
   }),
 
-  create: handle.permission("planet:create", async (input, ctx) => {
-    return planetService.create(input, ctx.user);
+  create: handle.permission('planet:create', async (input, ctx) => {
+    return planetService.create(input, ctx.user)
   }),
-});
+})
 
 const app = await createApp({
   routes,
@@ -57,8 +63,56 @@ const app = await createApp({
   handlers: {
     planet: planetHandlers,
   },
-});
+})
 ```
+
+## Composable Access Policies
+
+`defineAccess` is the source of truth for policy shape and composition.
+
+- `kind: "plain"` creates handlers like `handle.auth(handler)`.
+- `kind: "permission"` creates handlers like `handle.permission("task:create", handler)` and curried `handle.permission("task:create")(handler)`.
+- `uses` composes parent policies before the child policy.
+- `middleware` appends one access check to the composed chain.
+- `middlewares` appends multiple checks.
+- `producer` remains supported for compatibility and for root producers.
+
+```ts
+const access = defineAccess({
+  default: 'public',
+  policies: {
+    public: { kind: 'plain', producer: pub },
+    auth: { kind: 'plain', uses: 'public', middleware: requireAuth() },
+    staff: { kind: 'plain', uses: 'auth', middleware: requireStaff() },
+    adminPermission: {
+      kind: 'permission',
+      uses: 'staff',
+      middleware: (metadata: AccessMetadata) =>
+        requireAdminPermission(metadata.permissions ?? []),
+    },
+  },
+})
+
+const handle = defineHandle(access)
+
+export const inspectTenant = handle.adminPermission(
+  'tenant:inspect',
+  async (input, ctx) => {
+    return tenantService.inspect(input, ctx)
+  },
+)
+```
+
+This composes the runtime chain as:
+
+```ts
+pub
+  .use(requireAuth())
+  .use(requireStaff())
+  .use(requireAdminPermission(['tenant:inspect']))
+```
+
+Policy names such as `staff` or `adminPermission` belong to your app. Nova only uses `kind` to choose the handler declaration shape.
 
 ## Access Metadata
 
@@ -66,15 +120,29 @@ Handlers and middleware receive access metadata through context:
 
 ```ts
 ctx.access = {
-  policy: "permission",
-  permissions: ["planet:create"],
-};
+  policy: 'permission',
+  permissions: ['planet:create'],
+}
 ```
+
+Middleware factories also receive the same metadata:
+
+```ts
+permission: {
+  kind: "permission",
+  uses: "auth",
+  middleware: (metadata: AccessMetadata) =>
+    requirePermission(metadata.permissions ?? []),
+}
+```
+
+Policies without `kind` remain backward compatible. In `defineHandle(access)`, omitted `kind` is treated as `"plain"`, except a policy literally named `permission`, which is treated as `"permission"` for compatibility.
 
 ## Public API
 
 - `createApp`
 - `defineAccess`
+- `defineHandle`
 - `defineHandlers`
 - `handle.public`
 - `handle.auth`

@@ -4,8 +4,9 @@ import { z } from 'zod'
 import {
   createApp,
   defineAccess,
+  defineHandle,
   defineHandlers,
-  handle,
+  type AccessMetadata,
   type BaseORPCContext,
 } from '@outscope/nova-fn'
 
@@ -37,29 +38,53 @@ export const routes = {
 
 const publicProducer = implement(routes).$context<AppContext>()
 
-const authProducer = publicProducer.use(async ({ context, next }) => {
-  context.user = { id: 'user_123', permissions: ['task:create'] }
-  return next({ context })
-})
-
-const permissionProducer = authProducer.use(async ({ context, next }) => {
-  const required = context.access?.permissions ?? []
-  const allowed = required.every((permission) => context.user?.permissions.includes(permission))
-  if (!allowed) {
-    throw new Error(`Missing permission: ${required.join(', ')}`)
+function requireAuth() {
+  return async ({
+    context,
+    next,
+  }: {
+    context: AppContext
+    next: (params: { context: AppContext }) => unknown
+  }) => {
+    context.user = { id: 'user_123', permissions: ['task:create'] }
+    return next({ context })
   }
+}
 
-  return next({ context })
-})
+function requirePermission(required: string[]) {
+  return async ({
+    context,
+    next,
+  }: {
+    context: AppContext
+    next: (params: { context: AppContext }) => unknown
+  }) => {
+    const allowed = required.every((permission) =>
+      context.user?.permissions.includes(permission),
+    )
+    if (!allowed) {
+      throw new Error(`Missing permission: ${required.join(', ')}`)
+    }
+
+    return next({ context })
+  }
+}
 
 export const access = defineAccess({
   default: 'public',
   policies: {
-    public: { producer: publicProducer },
-    auth: { producer: authProducer },
-    permission: { producer: permissionProducer },
+    public: { kind: 'plain', producer: publicProducer },
+    auth: { kind: 'plain', uses: 'public', middleware: requireAuth() },
+    permission: {
+      kind: 'permission',
+      uses: 'auth',
+      middleware: (metadata: AccessMetadata) =>
+        requirePermission(metadata.permissions ?? []),
+    },
   },
 })
+
+const handle = defineHandle(access)
 
 export const taskHandlers = defineHandlers(routes.tasks, {
   mine: handle.auth((_input, ctx) => ({
@@ -80,7 +105,10 @@ const app = await createApp<AppContext>({
   },
 })
 
-if (process.argv[1] && import.meta.url === new URL(process.argv[1], 'file:').href) {
+if (
+  process.argv[1] &&
+  import.meta.url === new URL(process.argv[1], 'file:').href
+) {
   app.listen(3000, ({ port }) => {
     console.log(`Nova fn access example listening on http://localhost:${port}`)
   })

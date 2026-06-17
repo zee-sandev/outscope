@@ -47,47 +47,47 @@ CLI scaffolding still downloads from GitHub. The selected template maps to one o
 ## Decorator API
 
 ```ts
-import { createApp, defineAccess, corsPlugin } from "@outscope/nova";
-import { implement } from "@orpc/server";
-import { routes } from "./routes";
+import { createApp, defineAccess, corsPlugin } from '@outscope/nova'
+import { implement } from '@orpc/server'
+import { routes } from './routes'
 
-const pub = implement(routes).$context<AppContext>();
-const authed = pub.use(authMiddleware);
-const permissioned = authed.use(permissionMiddleware);
+const pub = implement(routes).$context<AppContext>()
+const authed = pub.use(authMiddleware)
+const permissioned = authed.use(permissionMiddleware)
 
 const access = defineAccess({
-  default: "public",
+  default: 'public',
   policies: {
     public: { producer: pub },
     auth: { producer: authed },
     permission: { producer: permissioned },
   },
-});
+})
 
 const app = await createApp({
   routes,
   access,
-  controllers: "src/features/**/*.controller.ts",
-  plugins: [corsPlugin({ origins: ["http://localhost:3000"] })],
-});
+  controllers: 'src/features/**/*.controller.ts',
+  plugins: [corsPlugin({ origins: ['http://localhost:3000'] })],
+})
 ```
 
 ```ts
-import { Controller, Handle, Permission, Public } from "@outscope/nova";
-import { routes } from "../../routes";
+import { Controller, Handle, Permission, Public } from '@outscope/nova'
+import { routes } from '../../routes'
 
 @Controller()
 export class PlanetController {
   @Public()
   @Handle(routes.planet.list)
   list(input: ListPlanetsInput, ctx: AppContext) {
-    return planetService.list(input);
+    return planetService.list(input)
   }
 
-  @Permission("planet:create")
+  @Permission('planet:create')
   @Handle(routes.planet.create)
   create(input: CreatePlanetInput, ctx: AppContextWithUser) {
-    return planetService.create(input, ctx.user);
+    return planetService.create(input, ctx.user)
   }
 }
 ```
@@ -98,19 +98,36 @@ export class PlanetController {
 import {
   createApp,
   defineAccess,
+  defineHandle,
   defineHandlers,
-  handle,
-} from "@outscope/nova-fn";
+  type AccessMetadata,
+} from '@outscope/nova-fn'
+
+const access = defineAccess({
+  default: 'public',
+  policies: {
+    public: { kind: 'plain', producer: pub },
+    auth: { kind: 'plain', uses: 'public', middleware: requireAuth() },
+    permission: {
+      kind: 'permission',
+      uses: 'auth',
+      middleware: (metadata: AccessMetadata) =>
+        requirePermission(metadata.permissions ?? []),
+    },
+  },
+})
+
+const handle = defineHandle(access)
 
 export const planetHandlers = defineHandlers(routes.planet, {
   list: handle.public(async (input, ctx) => {
-    return planetService.list(input);
+    return planetService.list(input)
   }),
 
-  create: handle.permission("planet:create", async (input, ctx) => {
-    return planetService.create(input, ctx.user);
+  create: handle.permission('planet:create', async (input, ctx) => {
+    return planetService.create(input, ctx.user)
   }),
-});
+})
 
 const app = await createApp({
   routes,
@@ -118,8 +135,10 @@ const app = await createApp({
   handlers: {
     planet: planetHandlers,
   },
-});
+})
 ```
+
+`defineHandle(access)` derives helper names from `access.policies`, so app-defined policies such as `staff` or `adminPermission` get matching typed handler helpers.
 
 ## Development
 

@@ -1,5 +1,11 @@
 # @outscope/nova-fn
 
+## 2.1.0
+
+### Minor Changes
+
+- Add `defineHandle(access)` typed policy helpers and composable access policies with `kind`, `uses`, and access middleware composition.
+
 ## 2.0.0
 
 ### Major Changes

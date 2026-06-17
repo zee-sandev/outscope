@@ -16,6 +16,7 @@ handlers = function implementations
 
 - Define API routes in `src/routes`.
 - Configure `defineAccess` once near app startup.
+- Derive handlers with `const handle = defineHandle(access)`.
 - Implement endpoints with `defineHandlers(routes.feature, { ... })`.
 - Use `handle.public`, `handle.auth`, or `handle.permission('scope:name')`.
 - Keep `producer` only inside `access.policies.*.producer`.
@@ -32,7 +33,7 @@ handlers = function implementations
 ```ts
 export const userHandlers = defineHandlers(routes.users, {
   list: handle.public(async (input, ctx) => {
-    return userService.list(input);
+    return userService.list(input)
   }),
-});
+})
 ```

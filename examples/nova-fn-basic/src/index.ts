@@ -4,8 +4,8 @@ import { z } from 'zod'
 import {
   createApp,
   defineAccess,
+  defineHandle,
   defineHandlers,
-  handle,
   type BaseORPCContext,
 } from '@outscope/nova-fn'
 
@@ -26,9 +26,11 @@ const publicProducer = implement(routes).$context<AppContext>()
 export const access = defineAccess({
   default: 'public',
   policies: {
-    public: { producer: publicProducer },
+    public: { kind: 'plain', producer: publicProducer },
   },
 })
+
+const handle = defineHandle(access)
 
 export const healthHandlers = defineHandlers(routes.health, {
   ping: handle.public(() => ({ pong: true })),
@@ -42,7 +44,10 @@ const app = await createApp<AppContext>({
   },
 })
 
-if (process.argv[1] && import.meta.url === new URL(process.argv[1], 'file:').href) {
+if (
+  process.argv[1] &&
+  import.meta.url === new URL(process.argv[1], 'file:').href
+) {
   app.listen(3000, ({ port }) => {
     console.log(`Nova fn basic example listening on http://localhost:${port}`)
   })

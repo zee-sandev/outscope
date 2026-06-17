@@ -4,8 +4,8 @@ import { z } from 'zod'
 import {
   createApp,
   defineAccess,
+  defineHandle,
   defineHandlers,
-  handle,
   type BaseORPCContext,
 } from '@outscope/nova-fn'
 
@@ -29,12 +29,16 @@ const publicProducer = implement(routes).$context<AppContext>()
 const access = defineAccess({
   default: 'public',
   policies: {
-    public: { producer: publicProducer },
+    public: { kind: 'plain', producer: publicProducer },
   },
 })
 
+const handle = defineHandle(access)
+
 const helloHandlers = defineHandlers(routes.hello, {
-  greet: handle.public((input) => ({ message: `Hello ${input.name ?? 'Nova'}` })),
+  greet: handle.public((input) => ({
+    message: `Hello ${input.name ?? 'Nova'}`,
+  })),
 })
 
 const app = await createApp<AppContext>({

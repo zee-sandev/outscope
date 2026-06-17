@@ -38,12 +38,24 @@ export type { ApplyHandlersOptions } from './core/orpc-hono.js'
 // Functional API
 // ============================================================================
 
-export { defineHandlers, handle } from './functional/define-handlers.js'
+export {
+  defineHandle,
+  defineHandlers,
+  handle,
+} from './functional/define-handlers.js'
 export type {
+  DefinedHandle,
   HandlerDef,
   HandlerMap,
+  PermissionHandle,
+  PlainHandle,
 } from './functional/define-handlers.js'
-export { defineAccess, resolveAccessPolicy } from './domain/access.js'
+export {
+  AccessPolicyCycleError,
+  MissingAccessPolicyError,
+  defineAccess,
+  resolveAccessPolicy,
+} from './domain/access.js'
 
 // ============================================================================
 // Plugins
@@ -136,10 +148,13 @@ export type {
 
 export type {
   AccessConfig,
+  AccessMiddlewareFactory,
   AccessPolicy,
+  AccessPolicyKind,
   AccessMetadata,
   EndpointAccessMetadata,
   ResolvedAccessPolicy,
+  AccessProducerFactory,
 } from './domain/access.js'
 
 // ============================================================================

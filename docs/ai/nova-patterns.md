@@ -26,7 +26,7 @@ handlers = function implementations for @outscope/nova-fn
 Use `@outscope/nova` for controller-style APIs.
 
 ```ts
-import "reflect-metadata";
+import 'reflect-metadata'
 import {
   Controller,
   Handle,
@@ -34,35 +34,35 @@ import {
   Public,
   createApp,
   defineAccess,
-} from "@outscope/nova";
-import { implement } from "@orpc/server";
-import { routes } from "./routes";
+} from '@outscope/nova'
+import { implement } from '@orpc/server'
+import { routes } from './routes'
 
-const pub = implement(routes).$context<AppContext>();
-const authed = pub.use(authMiddleware);
-const permissioned = authed.use(permissionMiddleware);
+const pub = implement(routes).$context<AppContext>()
+const authed = pub.use(authMiddleware)
+const permissioned = authed.use(permissionMiddleware)
 
 const access = defineAccess({
-  default: "public",
+  default: 'public',
   policies: {
     public: { producer: pub },
     auth: { producer: authed },
     permission: { producer: permissioned },
   },
-});
+})
 
 @Controller()
 class ProjectController {
   @Public()
   @Handle(routes.projects.list)
   list(input: ListProjectsInput, ctx: AppContext) {
-    return projectService.list(input);
+    return projectService.list(input)
   }
 
-  @Permission("project:create")
+  @Permission('project:create')
   @Handle(routes.projects.create)
   create(input: CreateProjectInput, ctx: AppContext) {
-    return projectService.create(input, ctx);
+    return projectService.create(input, ctx)
   }
 }
 
@@ -70,7 +70,7 @@ await createApp({
   routes,
   access,
   controllers: [ProjectController],
-});
+})
 ```
 
 ## Functional App
@@ -81,33 +81,39 @@ Use `@outscope/nova-fn` for explicit function maps.
 import {
   createApp,
   defineAccess,
+  defineHandle,
   defineHandlers,
-  handle,
-} from "@outscope/nova-fn";
-import { implement } from "@orpc/server";
-import { routes } from "./routes";
+  type AccessMetadata,
+} from '@outscope/nova-fn'
+import { implement } from '@orpc/server'
+import { routes } from './routes'
 
-const pub = implement(routes).$context<AppContext>();
-const authed = pub.use(authMiddleware);
-const permissioned = authed.use(permissionMiddleware);
+const pub = implement(routes).$context<AppContext>()
 
 const access = defineAccess({
-  default: "public",
+  default: 'public',
   policies: {
-    public: { producer: pub },
-    auth: { producer: authed },
-    permission: { producer: permissioned },
+    public: { kind: 'plain', producer: pub },
+    auth: { kind: 'plain', uses: 'public', middleware: requireAuth() },
+    permission: {
+      kind: 'permission',
+      uses: 'auth',
+      middleware: (metadata: AccessMetadata) =>
+        requirePermission(metadata.permissions ?? []),
+    },
   },
-});
+})
+
+const handle = defineHandle(access)
 
 export const projectHandlers = defineHandlers(routes.projects, {
   list: handle.public(async (input, ctx) => {
-    return projectService.list(input);
+    return projectService.list(input)
   }),
-  create: handle.permission("project:create", async (input, ctx) => {
-    return projectService.create(input, ctx);
+  create: handle.permission('project:create', async (input, ctx) => {
+    return projectService.create(input, ctx)
   }),
-});
+})
 
 await createApp({
   routes,
@@ -115,29 +121,59 @@ await createApp({
   handlers: {
     projects: projectHandlers,
   },
-});
+})
 ```
+
+### Functional Access Composition
+
+Prefer `defineHandle(access)` over app-specific handler wrappers. It derives typed helper names from `access.policies`.
+
+```ts
+const access = defineAccess({
+  default: 'public',
+  policies: {
+    public: { kind: 'plain', producer: pub },
+    auth: { kind: 'plain', uses: 'public', middleware: requireAuth() },
+    staff: { kind: 'plain', uses: 'auth', middleware: requireStaff() },
+    adminPermission: {
+      kind: 'permission',
+      uses: 'staff',
+      middleware: (metadata: AccessMetadata) =>
+        requireAdminPermission(metadata.permissions ?? []),
+    },
+  },
+})
+
+const handle = defineHandle(access)
+
+export const inspectTenant = handle.adminPermission(
+  'tenant:inspect',
+  async (input, ctx) => tenantService.inspect(input, ctx),
+)
+```
+
+`kind` controls the helper shape. `uses` composes parent policies in order. Business names like `staff` and `adminPermission` are supplied by the app, not Nova.
 
 ## Route Files
 
 ```ts
-import { oc } from "@orpc/contract";
-import { z } from "zod";
+import { oc } from '@orpc/contract'
+import { z } from 'zod'
 
 const projectOutput = z.object({
   id: z.string(),
   name: z.string(),
-});
+})
 
 export const projectRoutes = {
   list: oc
-    .route({ method: "GET", path: "/projects" })
+    .route({ method: 'GET', path: '/projects' })
     .output(projectOutput.array()),
   create: oc
-    .route({ method: "POST", path: "/projects" })
+    .route({ method: 'POST', path: '/projects' })
     .input(z.object({ name: z.string().min(1) }))
     .output(projectOutput),
-};
+}
 ```
 
 Then compose the app routes:
@@ -145,5 +181,5 @@ Then compose the app routes:
 ```ts
 export const routes = {
   projects: projectRoutes,
-};
+}
 ```

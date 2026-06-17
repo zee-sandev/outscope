@@ -4,6 +4,6 @@ Functional Nova 2.0 project. Use `routes`, `access`, `defineHandlers`, and `hand
 
 - Routes live under `src/routes`.
 - Access is configured with `defineAccess`.
+- Handler helpers are derived with `defineHandle(access)`.
 - Handlers use `handle.public`, `handle.auth`, or `handle.permission(...)`.
 - Do not generate `src/contracts`, `operations`, controllers, or `@Implement`.
-

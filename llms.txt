@@ -23,6 +23,7 @@ handlers = function implementations for @outscope/nova-fn
 - Use `routes`, `access`, `handlers`, and `@Handle`.
 - Put app route definitions under `src/routes`.
 - Use `defineAccess` once near app startup.
+- In functional apps, prefer `defineHandle(access)` so helper names come from `access.policies`.
 - Use `producer` only inside `access.policies.*.producer`.
 - Prefer `@outscope/nova` for decorators and `@outscope/nova-fn` for functional handlers.
 
@@ -32,4 +33,3 @@ handlers = function implementations for @outscope/nova-fn
 - Do not create `src/contracts` in new Nova 2.0 apps.
 - Do not make `@Middleware` the primary access API.
 - Do not import from `dist`, generated output, or package internals.
-
