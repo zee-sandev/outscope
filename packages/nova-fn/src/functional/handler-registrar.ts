@@ -1,12 +1,12 @@
 import type { AnyContractRouter } from '@orpc/contract'
 import { implement } from '@orpc/server'
-import type { HandlerDef, HandlerMap } from './define-handlers'
-import type { RouteRegisterConfig, WithORPCMetadata } from '../domain/types'
-import { MissingHandlerError } from '../domain/errors'
-import { ContractResolver } from '../application/contract-resolver'
-import { InputExtractor } from '../application/input-extractor'
-import { normalizeError } from '../domain/errors'
-import { createAccessMiddleware, resolveAccessPolicy } from '../domain/access'
+import type { HandlerDef, HandlerMap } from './define-handlers.js'
+import type { RouteRegisterConfig, WithORPCMetadata } from '../domain/types.js'
+import { MissingHandlerError } from '../domain/errors.js'
+import { ContractResolver } from '../application/contract-resolver.js'
+import { InputExtractor } from '../application/input-extractor.js'
+import { normalizeError } from '../domain/errors.js'
+import { createAccessMiddleware, resolveAccessPolicy } from '../domain/access.js'
 
 export class HandlerRegistrar {
   private readonly config: RouteRegisterConfig

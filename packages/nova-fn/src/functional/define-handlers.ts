@@ -1,5 +1,5 @@
 import type { AnyContractProcedure, AnyContractRouter } from '@orpc/contract'
-import type { AccessMetadata } from '../domain/access'
+import type { AccessMetadata } from '../domain/access.js'
 
 export interface HandlerDef<TInput = any, TOutput = any, TContext = any> {
   readonly handler: (input: TInput, context: TContext) => Promise<TOutput>

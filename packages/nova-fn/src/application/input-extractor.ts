@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import type { HttpMethod } from '../domain/types'
+import type { HttpMethod } from '../domain/types.js'
 
 /**
  * Service for extracting and normalizing input from HTTP requests

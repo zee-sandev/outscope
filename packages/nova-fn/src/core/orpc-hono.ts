@@ -1,8 +1,8 @@
 import type { Hono } from 'hono'
 import type { AnyContractRouter } from '@orpc/contract'
-import type { ORPCHonoOptions, HonoMiddleware } from '../domain/types'
-import type { HandlerMap } from '../functional/define-handlers'
-import { HandlerRegistrar } from '../functional/handler-registrar'
+import type { ORPCHonoOptions, HonoMiddleware } from '../domain/types.js'
+import type { HandlerMap } from '../functional/define-handlers.js'
+import { HandlerRegistrar } from '../functional/handler-registrar.js'
 
 /**
  * Options for applying handlers to Hono

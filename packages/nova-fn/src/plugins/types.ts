@@ -1,8 +1,8 @@
 import type { Hono, Context } from 'hono'
 import type { AnyContractRouter } from '@orpc/contract'
-import type { BaseORPCContext, ContextFactory } from '../domain/context'
-import type { HandlerMap } from '../functional/define-handlers'
-import type { AccessConfig } from '../domain/access'
+import type { BaseORPCContext, ContextFactory } from '../domain/context.js'
+import type { HandlerMap } from '../functional/define-handlers.js'
+import type { AccessConfig } from '../domain/access.js'
 
 /**
  * Plugin system types for @outscope/nova-fn

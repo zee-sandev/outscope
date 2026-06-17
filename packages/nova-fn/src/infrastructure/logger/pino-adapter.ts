@@ -1,4 +1,4 @@
-import type { Logger, LoggerConfig } from './index'
+import type { Logger, LoggerConfig } from './index.js'
 
 /**
  * Create a Pino-based logger.

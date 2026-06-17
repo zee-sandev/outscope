@@ -1,5 +1,5 @@
 import type { Context as HonoContext } from 'hono'
-import type { AccessMetadata } from './access'
+import type { AccessMetadata } from './access.js'
 
 /**
  * Context types for oRPC-Hono framework

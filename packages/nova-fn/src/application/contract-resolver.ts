@@ -1,6 +1,6 @@
 import type { AnyContractRouter } from '@orpc/contract'
-import type { WithORPCMetadata } from '../domain/types'
-import { hasORPCMetadata } from '../domain/types'
+import type { WithORPCMetadata } from '../domain/types.js'
+import { hasORPCMetadata } from '../domain/types.js'
 
 /**
  * Service for resolving contract paths and procedures within a contract router

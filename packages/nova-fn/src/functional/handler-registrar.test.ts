@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { defineAccess } from '../domain/access'
-import { defineHandlers, handle } from './define-handlers'
-import { HandlerRegistrar } from './handler-registrar'
+import { defineAccess } from '../domain/access.js'
+import { defineHandlers, handle } from './define-handlers.js'
+import { HandlerRegistrar } from './handler-registrar.js'
 
 const listRoute = { id: 'list' }
 const createRoute = { id: 'create' }

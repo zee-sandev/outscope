@@ -14,7 +14,7 @@
     "@orpc/contract": "^1.9.3",
     "@orpc/openapi": "^1.9.3",
     "@orpc/server": "^1.9.3",
-    "@outscope/nova-fn": "^2.0.0",
+    "@outscope/nova-fn": "^2.0.1",
     "hono": "^4.10.7",
     "zod": "^4.1.13"
   },

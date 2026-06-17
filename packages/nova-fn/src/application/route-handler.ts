@@ -1,8 +1,8 @@
 import type { Context } from 'hono'
-import type { WithORPCMetadata, ProcedureContext, HttpMethod } from '../domain/types'
-import { hasORPCMetadata } from '../domain/types'
-import { toORPCHonoError, InvalidProcedureError } from '../domain/errors'
-import { InputExtractor } from './input-extractor'
+import type { WithORPCMetadata, ProcedureContext, HttpMethod } from '../domain/types.js'
+import { hasORPCMetadata } from '../domain/types.js'
+import { toORPCHonoError, InvalidProcedureError } from '../domain/errors.js'
+import { InputExtractor } from './input-extractor.js'
 
 /**
  * Factory for creating route handlers that execute oRPC procedures

@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
-import type { Plugin, PluginFactory } from './types'
-import type { BaseORPCContext } from '../domain/context'
+import type { Plugin, PluginFactory } from './types.js'
+import type { BaseORPCContext } from '../domain/context.js'
 
 /**
  * Logger plugin options

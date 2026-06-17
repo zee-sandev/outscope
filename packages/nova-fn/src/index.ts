@@ -29,21 +29,21 @@
 // Core
 // ============================================================================
 
-export { createApp } from './core/create-app'
-export type { AppConfig, OutscopeApp, ErrorHandler } from './core/create-app'
-export { ORPCHono } from './core/orpc-hono'
-export type { ApplyHandlersOptions } from './core/orpc-hono'
+export { createApp } from './core/create-app.js'
+export type { AppConfig, OutscopeApp, ErrorHandler } from './core/create-app.js'
+export { ORPCHono } from './core/orpc-hono.js'
+export type { ApplyHandlersOptions } from './core/orpc-hono.js'
 
 // ============================================================================
 // Functional API
 // ============================================================================
 
-export { defineHandlers, handle } from './functional/define-handlers'
+export { defineHandlers, handle } from './functional/define-handlers.js'
 export type {
   HandlerDef,
   HandlerMap,
-} from './functional/define-handlers'
-export { defineAccess, resolveAccessPolicy } from './domain/access'
+} from './functional/define-handlers.js'
+export { defineAccess, resolveAccessPolicy } from './domain/access.js'
 
 // ============================================================================
 // Plugins
@@ -54,7 +54,7 @@ export {
   loggerPlugin,
   openapiPlugin,
   errorHandlerPlugin,
-} from './plugins'
+} from './plugins/index.js'
 
 export type {
   Plugin,
@@ -67,20 +67,20 @@ export type {
   ErrorHandlerPluginOptions,
   RequestLogInfo,
   ErrorResponse,
-} from './plugins'
+} from './plugins/index.js'
 
 // ============================================================================
 // Context
 // ============================================================================
 
-export { defaultContextFactory } from './domain/context'
+export { defaultContextFactory } from './domain/context.js'
 
 export type {
   BaseORPCContext,
   AuthContext,
   AuthenticatedContext,
   ContextFactory,
-} from './domain/context'
+} from './domain/context.js'
 
 // ============================================================================
 // Logger
@@ -93,9 +93,9 @@ export {
   initLogger,
   createPinoLogger,
   createConsoleLogger,
-} from './infrastructure/logger'
+} from './infrastructure/logger/index.js'
 
-export type { Logger, LoggerConfig } from './infrastructure/logger'
+export type { Logger, LoggerConfig } from './infrastructure/logger/index.js'
 
 // ============================================================================
 // Errors
@@ -116,7 +116,7 @@ export {
   createError,
   normalizeError,
   withErrorHandling,
-} from './domain/errors'
+} from './domain/errors.js'
 
 // ============================================================================
 // Types
@@ -132,7 +132,7 @@ export type {
   HttpMethod,
   RouteMetadata,
   HonoMiddleware,
-} from './domain/types'
+} from './domain/types.js'
 
 export type {
   AccessConfig,
@@ -140,7 +140,7 @@ export type {
   AccessMetadata,
   EndpointAccessMetadata,
   ResolvedAccessPolicy,
-} from './domain/access'
+} from './domain/access.js'
 
 // ============================================================================
 // Utilities
@@ -152,7 +152,7 @@ export {
   extractCookieToken,
   attachPrismaLogging,
   createSqlFormatter,
-} from './utils'
+} from './utils/index.js'
 
 export type {
   TokenExtractionResult,
@@ -160,7 +160,7 @@ export type {
   TokenExtractionContext,
   PrismaClientLike,
   PrismaLoggingOptions,
-} from './utils'
+} from './utils/index.js'
 
 // ============================================================================
 // Re-exports from oRPC

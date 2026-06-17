@@ -5,7 +5,7 @@
  * reducing boilerplate for common Prisma setup patterns.
  */
 
-import type { Logger } from '../infrastructure/logger'
+import type { Logger } from '../infrastructure/logger/index.js'
 
 /**
  * Prisma client interface for logging attachment

@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import type { AnyContractProcedure, AnyContractRouter } from '@orpc/contract'
-import type { AccessConfig } from './access'
+import type { AccessConfig } from './access.js'
 
 /**
  * Core domain types for oRPC-Hono integration
@@ -164,4 +164,4 @@ export type {
   PluginFactory,
   ServerInfo,
   ErrorHandler,
-} from '../plugins/types'
+} from '../plugins/types.js'

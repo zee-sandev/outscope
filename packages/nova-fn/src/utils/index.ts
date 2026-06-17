@@ -13,7 +13,7 @@ export {
   type TokenExtractionResult,
   type ExtractTokenOptions,
   type TokenExtractionContext,
-} from './auth'
+} from './auth.js'
 
 // Prisma integration utilities
 export {
@@ -21,4 +21,4 @@ export {
   createSqlFormatter,
   type PrismaClientLike,
   type PrismaLoggingOptions,
-} from './prisma'
+} from './prisma.js'

@@ -1,7 +1,7 @@
 import type { Context } from 'hono'
-import type { Plugin, PluginFactory } from './types'
-import type { BaseORPCContext } from '../domain/context'
-import { toORPCHonoError, isORPCHonoError } from '../domain/errors'
+import type { Plugin, PluginFactory } from './types.js'
+import type { BaseORPCContext } from '../domain/context.js'
+import { toORPCHonoError, isORPCHonoError } from '../domain/errors.js'
 
 /**
  * Error handler plugin options

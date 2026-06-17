@@ -1,13 +1,13 @@
 import { Hono } from 'hono'
 import type { Context, Next } from 'hono'
 import type { AnyContractRouter } from '@orpc/contract'
-import { ORPCHono } from './orpc-hono'
-import { defaultContextFactory } from '../domain/context'
-import type { BaseORPCContext, ContextFactory } from '../domain/context'
-import type { HandlerMap } from '../functional/define-handlers'
-import type { Plugin, PluginContext, ServerInfo } from '../plugins/types'
-import type { HonoMiddleware } from '../domain/types'
-import type { AccessConfig } from '../domain/access'
+import { ORPCHono } from './orpc-hono.js'
+import { defaultContextFactory } from '../domain/context.js'
+import type { BaseORPCContext, ContextFactory } from '../domain/context.js'
+import type { HandlerMap } from '../functional/define-handlers.js'
+import type { Plugin, PluginContext, ServerInfo } from '../plugins/types.js'
+import type { HonoMiddleware } from '../domain/types.js'
+import type { AccessConfig } from '../domain/access.js'
 
 /**
  * Application configuration for the lite/functional version

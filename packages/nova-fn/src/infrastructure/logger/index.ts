@@ -7,8 +7,8 @@
  * - Supports structured logging
  */
 
-import { createPinoLogger } from './pino-adapter'
-import { createConsoleLogger } from './console-adapter'
+import { createPinoLogger } from './pino-adapter.js'
+import { createConsoleLogger } from './console-adapter.js'
 
 /**
  * Logger interface
@@ -137,5 +137,5 @@ export function initLogger(config?: LoggerConfig): Logger {
 }
 
 // Re-export adapters
-export { createPinoLogger } from './pino-adapter'
-export { createConsoleLogger } from './console-adapter'
+export { createPinoLogger } from './pino-adapter.js'
+export { createConsoleLogger } from './console-adapter.js'

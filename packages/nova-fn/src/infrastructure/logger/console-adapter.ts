@@ -1,4 +1,4 @@
-import type { Logger, LoggerConfig } from './index'
+import type { Logger, LoggerConfig } from './index.js'
 
 /**
  * Log levels with numeric values for comparison
